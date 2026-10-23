@@ -994,28 +994,58 @@ function resetTime(type){
   document.getElementById(ids[type]).value=DEFAULT_SHIFT_TIMES[type];
 }
 
-function applyLeaveAuto(li,autoShift){
+function applyLeaveAuto(li, autoShift){
   members.forEach((_,mi)=>{
-    const sel=document.getElementById(`sel_${mi}`);
-    const ei=document.getElementById(`ext_${mi}`);
-    const row=document.getElementById(`mrow_${mi}`);
-    const hw=document.getElementById(`halfwrap_${mi}`);
-    if(li===-1){sel.value='auto';ei.value='';if(hw)hw.classList.remove('show');row.classList.remove('is-off','is-ext');return;}
-    if(mi===li){
-      ei.value='';if(hw)hw.classList.remove('show');
-      row.classList.add('is-off');row.classList.remove('is-ext');
-    }else{
-      let at='am';if(autoShift.pm===mi)at='pm';else if(autoShift.night===mi)at='night';
-      sel.value=at;ei.value='4';if(hw)hw.classList.remove('show');
-      row.classList.add('is-ext');row.classList.remove('is-off');
+    const sel     = document.getElementById(`sel_${mi}`);
+    const ei      = document.getElementById(`ext_${mi}`);
+    const row     = document.getElementById(`mrow_${mi}`);
+    const hw      = document.getElementById(`halfwrap_${mi}`);
+
+    if(li === -1){
+      // 정상근무 → 전체 auto 리셋
+      sel.value='auto'; ei.value='';
+      if(hw) hw.classList.remove('show');
+      row.classList.remove('is-off','is-ext');
+      return;
+    }
+
+    if(mi === li){
+      // 연차 당사자
+      ei.value='';
+      if(hw) hw.classList.remove('show');
+      row.classList.add('is-off');
+      row.classList.remove('is-ext');
+
+    } else {
+      // ★ 핵심 수정: 연차자 빠진 자리를 나머지가 승계
+      // 연차자의 원래 근무 타입을 파악
+      let leaveType = 'am';
+      if(autoShift.pm    === li) leaveType = 'pm';
+      if(autoShift.night === li) leaveType = 'night';
+
+      // 나머지 팀원의 원래 근무 타입
+      let myType = 'am';
+      if(autoShift.pm    === mi) myType = 'pm';
+      if(autoShift.night === mi) myType = 'night';
+
+      // ★ 연차자가 오전이면 → 나머지는 본인 원래 근무 유지 + +4h
+      // 연차자 근무 타입과 상관없이 각자 원래 근무 유지
+      sel.value = myType;
+      ei.value  = '4';
+      if(hw) hw.classList.remove('show');
+      row.classList.add('is-ext');
+      row.classList.remove('is-off');
     }
   });
-  const notice=document.getElementById('leaveNotice');
-  if(li>=0){
-    const others=members.filter((_,i)=>i!==li);
-    notice.textContent=`✅ ${members[li]} 이벤트 → ${others.join(', ')} 자동 +4h 적용됨`;
+
+  const notice = document.getElementById('leaveNotice');
+  if(li >= 0){
+    const others = members.filter((_,i) => i !== li);
+    notice.textContent = `✅ ${members[li]} 연차 → ${others.join(', ')} 자동 +4h 적용됨`;
     notice.classList.add('show');
-  }else{notice.classList.remove('show');}
+  } else {
+    notice.classList.remove('show');
+  }
 }
 
 function openModal(key,date){
