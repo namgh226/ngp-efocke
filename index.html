@@ -166,7 +166,6 @@
     .member-row select{flex:1;padding:5px;border:1px solid #cbd5e0;border-radius:6px;font-size:.82rem;}
     .ext-wrap{display:flex;align-items:center;gap:3px;}
     .ext-wrap input{width:52px;padding:5px;border:1px solid #cbd5e0;border-radius:6px;font-size:.82rem;text-align:center;}
-    .ext-wrap span{font-size:.78rem;color:#718096;}
     .half-time-wrap{display:none;align-items:center;gap:3px;margin-left:4px;}
     .half-time-wrap.show{display:flex;}
     .half-time-wrap input{width:48px;padding:5px;border:1px solid #fbd38d;border-radius:6px;
@@ -223,7 +222,6 @@
   </style>
 </head>
 <body>
-
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
     <h2>🔐 NGP 포장전자 근무달력</h2>
@@ -262,19 +260,16 @@
     </button>
   </div>
 </div>
-
 <header>
   <h1>📅 NGP 포장전자 근무달력</h1>
   <p>🔘 휴무 · ⭐ 특근 · ✅ 정상근무 | 🔵 종주 비정기 투입 | 실시간 동기화</p>
 </header>
-
 <div class="user-bar" id="userBar">
   <span id="userBarText">🔐 로그인 중...</span>
   <button class="logout-btn" onclick="logout()">🔒 로그아웃</button>
 </div>
 <div class="sync-status" id="syncStatus">🔄 연결 중...</div>
 <div class="holiday-status" id="holidayStatus">🔄 공휴일 정보 로딩 중...</div>
-
 <div class="member-config">
   <span><label>팀원 A </label><input id="nameA" value="누리" maxlength="6"></span>
   <span><label>팀원 B </label><input id="nameB" value="건후" maxlength="6"></span>
@@ -289,7 +284,6 @@
   </span>
   <button class="btn btn-blue" onclick="applyConfig()">✅ 적용</button>
 </div>
-
 <div class="controls">
   <select id="yearSel" onchange="onYearChange()"
     style="padding:7px 12px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;">
@@ -301,13 +295,11 @@
   </select>
   <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
 </div>
-
 <div class="nav">
   <button onclick="prevMonth()">◀</button>
   <h2 id="monthTitle"></h2>
   <button onclick="nextMonth()">▶</button>
 </div>
-
 <div class="calendar-wrap">
   <table>
     <thead>
@@ -316,7 +308,6 @@
     <tbody id="calBody"></tbody>
   </table>
 </div>
-
 <div class="legend">
   <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div> 휴무</div>
   <div class="legend-item"><div class="legend-box" style="background:#fffde7;border-color:#f6e05e;"></div> 특근</div>
@@ -424,7 +415,6 @@
     </div>
   </div>
 </div>
-
 <div class="edit-locked" id="editLocked">🔒 로그인 후 수정 가능합니다</div>
 
 <script>
@@ -476,7 +466,7 @@ let isViewOnly     = false;
 let selectedMember = null;
 let pinValue       = '';
 
-function initPinScreen(){
+function initPinScreen() {
   const container = document.getElementById('pinMembers');
   container.innerHTML = '';
   Object.keys(PIN_CONFIG).forEach(name => {
@@ -487,8 +477,10 @@ function initPinScreen(){
     container.appendChild(btn);
   });
 }
-function selectPinMember(name){
-  selectedMember = name; pinValue = '';
+
+function selectPinMember(name) {
+  selectedMember = name;
+  pinValue = '';
   document.querySelectorAll('.pin-member-btn').forEach(btn => {
     btn.classList.toggle('selected', btn.textContent.includes(name));
   });
@@ -497,27 +489,35 @@ function selectPinMember(name){
   document.getElementById('pinError').textContent = '';
   updatePinDots();
 }
-function pinInput(num){
-  if(pinValue.length >= 4) return;
-  pinValue += num; updatePinDots();
-  if(pinValue.length === 4) checkPin();
+
+function pinInput(num) {
+  if (pinValue.length >= 4) return;
+  pinValue += num;
+  updatePinDots();
+  if (pinValue.length === 4) checkPin();
 }
-function pinBack(){ pinValue = pinValue.slice(0,-1); updatePinDots(); }
-function pinClear(){ pinValue = ''; updatePinDots(); document.getElementById('pinError').textContent = ''; }
-function updatePinDots(){
-  for(let i=0;i<4;i++)
-    document.getElementById(`dot${i}`).classList.toggle('filled', i < pinValue.length);
+
+function pinBack() { pinValue = pinValue.slice(0, -1); updatePinDots(); }
+function pinClear() { pinValue = ''; updatePinDots(); document.getElementById('pinError').textContent = ''; }
+
+// ★ 수정 1: getElementById 괄호 누락 수정
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('dot' + i).classList.toggle('filled', i < pinValue.length);
+  }
 }
-function checkPin(){
-  if(pinValue === PIN_CONFIG[selectedMember]){
+
+function checkPin() {
+  if (pinValue === PIN_CONFIG[selectedMember]) {
     loginSuccess(selectedMember);
   } else {
     document.getElementById('pinError').textContent = '❌ PIN이 틀렸습니다. 다시 입력해주세요.';
     pinValue = '';
-    setTimeout(()=>updatePinDots(), 100);
+    setTimeout(() => updatePinDots(), 100);
   }
 }
-function loginSuccess(name){
+
+function loginSuccess(name) {
   currentUser = name; isViewOnly = false;
   document.getElementById('pinOverlay').classList.add('hidden');
   const bar = document.getElementById('userBar');
@@ -525,18 +525,20 @@ function loginSuccess(name){
   document.getElementById('userBarText').textContent = `✅ ${name}님 로그인 중 | 근무 수정 가능`;
   sessionStorage.setItem('ngpUser', name);
 }
-function enterViewOnly(){
+
+function enterViewOnly() {
   currentUser = null; isViewOnly = true;
   document.getElementById('pinOverlay').classList.add('hidden');
   const bar = document.getElementById('userBar');
   bar.className = 'user-bar view-only';
   document.getElementById('userBarText').textContent = '👁️ 게스트 열람 모드 | 수정 불가';
 }
-function logout(){
+
+function logout() {
   currentUser = null; isViewOnly = false; pinValue = ''; selectedMember = null;
   sessionStorage.removeItem('ngpUser');
   document.getElementById('pinInputWrap').classList.remove('show');
-  document.querySelectorAll('.pin-member-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.pin-member-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('pinError').textContent = '';
   document.getElementById('pinOverlay').classList.remove('hidden');
 }
@@ -552,202 +554,206 @@ const HOLIDAY_FALLBACK = {
   2029:{'2029-01-01':'신정','2029-01-25':'설날 전날','2029-01-26':'설날','2029-01-27':'설날 다음날','2029-01-28':'대체공휴일','2029-03-01':'삼일절','2029-05-05':'어린이날','2029-05-20':'부처님 오신 날','2029-06-06':'현충일','2029-08-15':'광복절','2029-10-01':'추석 전날','2029-10-02':'추석','2029-10-03':'추석/개천절','2029-10-04':'대체공휴일','2029-10-09':'한글날','2029-12-25':'크리스마스'},
   2030:{'2030-01-01':'신정','2030-02-11':'설날 전날','2030-02-12':'설날','2030-02-13':'설날 다음날','2030-03-01':'삼일절','2030-05-05':'어린이날','2030-05-09':'부처님 오신 날','2030-06-06':'현충일','2030-08-15':'광복절','2030-09-20':'추석 전날','2030-09-21':'추석','2030-09-22':'추석 다음날','2030-09-23':'대체공휴일','2030-10-03':'개천절','2030-10-09':'한글날','2030-12-25':'크리스마스'},
 };
-async function fetchHolidays(year){
-  if(holidayCache[year]) return holidayCache[year];
-  const statusEl=document.getElementById('holidayStatus');
-  if(!API_KEY||API_KEY==='YOUR_HOLIDAY_API_KEY'){
-    holidayCache[year]=HOLIDAY_FALLBACK[year]||{};
-    statusEl.textContent=`📋 ${year}년 기본 공휴일 데이터 사용 중`;
-    statusEl.className='holiday-status';
+
+// ★ 수정 2: fetchHolidays 내 textContent 템플릿 리터럴 오용 수정
+async function fetchHolidays(year) {
+  if (holidayCache[year]) return holidayCache[year];
+  const statusEl = document.getElementById('holidayStatus');
+  if (!API_KEY || API_KEY === 'YOUR_HOLIDAY_API_KEY') {
+    holidayCache[year] = HOLIDAY_FALLBACK[year] || {};
+    statusEl.textContent = `📋 ${year}년 기본 공휴일 데이터 사용 중`;
+    statusEl.className = 'holiday-status';
     return holidayCache[year];
   }
-  try{
-    statusEl.textContent=`🔄 ${year}년 공휴일 불러오는 중...`;
-    const holidays={};
-    const promises=[];
-    for(let m=1;m<=12;m++){
-      const url=`https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
-      promises.push(fetch(url).then(r=>r.json()).then(data=>{
-        const items=data?.response?.body?.items?.item;
-        if(!items) return;
-        const list=Array.isArray(items)?items:[items];
-        list.forEach(item=>{
-          const d=String(item.locdate);
-          holidays[`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`]=item.dateName;
-        });
-      }).catch(()=>{}));
+  try {
+    statusEl.textContent = `🔄 ${year}년 공휴일 불러오는 중...`;
+    const holidays = {};
+    const promises = [];
+    for (let m = 1; m <= 12; m++) {
+      const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
+      promises.push(
+        fetch(url).then(r => r.json()).then(data => {
+          const items = data?.response?.body?.items?.item;
+          if (!items) return;
+          const list = Array.isArray(items) ? items : [items];
+          list.forEach(item => {
+            const d = String(item.locdate);
+            holidays[`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`] = item.dateName;
+          });
+        }).catch(() => {})
+      );
     }
     await Promise.all(promises);
-    if(!Object.keys(holidays).length) throw new Error();
-    holidayCache[year]=holidays;
-    statusEl.textContent=`✅ ${year}년 공휴일 자동 업데이트 완료!`;
-    statusEl.className='holiday-status success';
-    setTimeout(()=>{statusEl.style.display='none';},3000);
+    if (!Object.keys(holidays).length) throw new Error();
+    holidayCache[year] = holidays;
+    statusEl.textContent = `✅ ${year}년 공휴일 자동 업데이트 완료!`;
+    statusEl.className = 'holiday-status success';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
     return holidayCache[year];
-  }catch{
-    holidayCache[year]=HOLIDAY_FALLBACK[year]||{};
-    statusEl.textContent=`⚠️ API 실패 → 기본 데이터 사용`;
-    statusEl.className='holiday-status error';
+  } catch {
+    holidayCache[year] = HOLIDAY_FALLBACK[year] || {};
+    statusEl.textContent = `⚠️ API 실패 → 기본 데이터 사용`;
+    statusEl.className = 'holiday-status error';
     return holidayCache[year];
   }
 }
-function getHoliday(key){
-  const year=parseInt(key.substring(0,4));
-  return (holidayCache[year]||HOLIDAY_FALLBACK[year]||{})[key];
+
+function getHoliday(key) {
+  const year = parseInt(key.substring(0, 4));
+  return (holidayCache[year] || HOLIDAY_FALLBACK[year] || {})[key];
 }
 
 // ──────────────────────────────────────────────
 //  전역 상태
 // ──────────────────────────────────────────────
-let currentYear=2027, currentMonth=0;
-let members=['누리','건후','승윤'];
-let baseAmIndex=2;
-let overrides={};
-let modalKey=null, currentDayType='normal', currentAutoShift=null;
+let currentYear = 2027, currentMonth = 0;
+let members = ['누리','건후','승윤'];
+let baseAmIndex = 2;
+let overrides = {};
+let modalKey = null, currentDayType = 'normal', currentAutoShift = null;
 
-const EVENT_TYPES=new Set(['off','half','timeleave','family','fitness','groupoff','edu','earlyout','special','none']);
-
-const SHIFT_TYPES=[
-  {value:'auto',      label:'(자동)'},
-  {value:'am',        label:'오전'},
-  {value:'pm',        label:'오후'},
-  {value:'night',     label:'야간'},
-  {value:'off',       label:'연차'},
-  {value:'half',      label:'반차 (시간 입력)'},
-  {value:'timeleave', label:'시간차 (시간 입력)'},
-  {value:'family',    label:'가족사랑'},
-  {value:'fitness',   label:'체력단련'},
-  {value:'groupoff',  label:'단체연차'},
-  {value:'edu',       label:'교육'},
-  {value:'earlyout',  label:'조기출근 (시간 입력)'},
-  {value:'special',   label:'설비/기타'},
-  {value:'none',      label:'근무없음'},
+const EVENT_TYPES = new Set(['off','half','timeleave','family','fitness','groupoff','edu','earlyout','special','none']);
+const SHIFT_TYPES = [
+  {value:'auto',       label:'(자동)'},
+  {value:'am',         label:'오전'},
+  {value:'pm',         label:'오후'},
+  {value:'night',      label:'야간'},
+  {value:'off',        label:'연차'},
+  {value:'half',       label:'반차 (시간 입력)'},
+  {value:'timeleave',  label:'시간차 (시간 입력)'},
+  {value:'family',     label:'가족사랑'},
+  {value:'fitness',    label:'체력단련'},
+  {value:'groupoff',   label:'단체연차'},
+  {value:'edu',        label:'교육'},
+  {value:'earlyout',   label:'조기출근 (시간 입력)'},
+  {value:'special',    label:'설비/기타'},
+  {value:'none',       label:'근무없음'},
 ];
 
 // ──────────────────────────────────────────────
 //  Firebase 실시간 동기화
 // ──────────────────────────────────────────────
-function initFirebase(){
-  const syncEl=document.getElementById('syncStatus');
-  db.ref('.info/connected').on('value',(snap)=>{
-    if(snap.val()){
-      syncEl.textContent='🟢 실시간 동기화 연결됨';
-      syncEl.className='sync-status';
+function initFirebase() {
+  const syncEl = document.getElementById('syncStatus');
+  db.ref('.info/connected').on('value', (snap) => {
+    if (snap.val()) {
+      syncEl.textContent = '🟢 실시간 동기화 연결됨';
+      syncEl.className = 'sync-status';
     } else {
-      syncEl.textContent='🔴 오프라인 - 자동 재연결 대기 중';
-      syncEl.className='sync-status error';
+      syncEl.textContent = '🔴 오프라인 - 자동 재연결 대기 중';
+      syncEl.className = 'sync-status error';
     }
   });
-  db.ref('ngp_schedule').on('value',(snap)=>{
-    const data=snap.val()||{};
-    overrides=data.overrides||{};
-    if(data.members) members=data.members;
-    if(data.baseAmIndex!==undefined) baseAmIndex=data.baseAmIndex;
-    document.getElementById('nameA').value=members[0];
-    document.getElementById('nameB').value=members[1];
-    document.getElementById('nameC').value=members[2];
-    document.getElementById('firstShift').value=baseAmIndex;
-    syncEl.textContent='✅ 동기화 완료! '+new Date().toLocaleTimeString('ko-KR');
-    syncEl.className='sync-status';
+  db.ref('ngp_schedule').on('value', (snap) => {
+    const data = snap.val() || {};
+    overrides = data.overrides || {};
+    if (data.members) members = data.members;
+    if (data.baseAmIndex !== undefined) baseAmIndex = data.baseAmIndex;
+    document.getElementById('nameA').value = members[0];
+    document.getElementById('nameB').value = members[1];
+    document.getElementById('nameC').value = members[2];
+    document.getElementById('firstShift').value = baseAmIndex;
+    syncEl.textContent = '✅ 동기화 완료! ' + new Date().toLocaleTimeString('ko-KR');
+    syncEl.className = 'sync-status';
     renderCalendar();
   });
 }
-function saveToFirebase(){
-  const syncEl=document.getElementById('syncStatus');
-  syncEl.textContent='🔄 저장 중...'; syncEl.className='sync-status syncing';
+
+function saveToFirebase() {
+  const syncEl = document.getElementById('syncStatus');
+  syncEl.textContent = '🔄 저장 중...'; syncEl.className = 'sync-status syncing';
   db.ref('ngp_schedule').set({
     overrides, members, baseAmIndex,
     lastUpdated: new Date().toISOString(),
-    lastUpdatedBy: currentUser||'unknown'
+    lastUpdatedBy: currentUser || 'unknown'
   });
 }
 
 // ──────────────────────────────────────────────
 //  유틸 함수
 // ──────────────────────────────────────────────
-function getAutoShift(date){
-  const baseMonday=new Date(2027,0,4);
-  const dow=date.getDay();
-  const monday=new Date(date);
-  monday.setDate(date.getDate()+(dow===0?-6:1-dow));
-  monday.setHours(0,0,0,0);
-  const weekNum=Math.round((monday-baseMonday)/(7*86400000));
-  const amIdx=((baseAmIndex+weekNum)%3+3)%3;
-  return{am:amIdx,pm:(amIdx+1)%3,night:(amIdx+2)%3};
-}
-function toKey(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function getDefaultDayType(date){
-  const dow=date.getDay(); const key=toKey(date);
-  if(dow===0||dow===6||getHoliday(key)) return 'off';
-  return 'normal';
-}
-function badgeClass(type){
-  return{
-    'am'       :'badge-am',
-    'pm'       :'badge-pm',
-    'night'    :'badge-night',
-    'off'      :'badge-off',
-    'half'     :'badge-half',
-    'timeleave':'badge-timeleave',
-    'family'   :'badge-family',
-    'fitness'  :'badge-fitness',
-    'groupoff' :'badge-groupoff',
-    'edu'      :'badge-edu',
-    'earlyout' :'badge-half',
-    'special'  :'badge-special',
-    'none'     :'badge-special'
-  }[type]||'badge-special';
+function getAutoShift(date) {
+  const baseMonday = new Date(2027, 0, 4);
+  const dow = date.getDay();
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + (dow === 0 ? -6 : 1 - dow));
+  monday.setHours(0, 0, 0, 0);
+  const weekNum = Math.round((monday - baseMonday) / (7 * 86400000));
+  const amIdx = ((baseAmIndex + weekNum) % 3 + 3) % 3;
+  return { am: amIdx, pm: (amIdx + 1) % 3, night: (amIdx + 2) % 3 };
 }
 
-// ★ 핵심 수정: shiftLabel 문법 오류 완전 수정
-// 조출 시간 표시: "오후 건후 조출 +2h" 형식 [1]
-function shiftLabel(type,ext,halfTime,name){
-  const L={
-    'am'       :'오전',
-    'pm'       :'오후',
-    'night'    :'야간',
-    'off'      :'연차',
-    'half'     :'반차',
-    'timeleave':'시간차',
-    'family'   :'가족사랑',
-    'fitness'  :'체력단련',
-    'groupoff' :'단체연차',
-    'edu'      :'교육',
-    'earlyout' :'조출',
-    'special'  :'특수',
-    'none'     :'-'
+function toKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getDefaultDayType(date) {
+  const dow = date.getDay();
+  const key = toKey(date);
+  if (dow === 0 || dow === 6 || getHoliday(key)) return 'off';
+  return 'normal';
+}
+
+function badgeClass(type) {
+  return {
+    'am'       : 'badge-am',
+    'pm'       : 'badge-pm',
+    'night'    : 'badge-night',
+    'off'      : 'badge-off',
+    'half'     : 'badge-half',
+    'timeleave': 'badge-timeleave',
+    'family'   : 'badge-family',
+    'fitness'  : 'badge-fitness',
+    'groupoff' : 'badge-groupoff',
+    'edu'      : 'badge-edu',
+    'earlyout' : 'badge-half',
+    'special'  : 'badge-special',
+    'none'     : 'badge-special'
+  }[type] || 'badge-special';
+}
+
+// ★ 수정 3: shiftLabel 문법 오류 수정 (let s=`...`, s+=`...`)
+function shiftLabel(type, ext, halfTime, name) {
+  const L = {
+    'am'       : '오전',
+    'pm'       : '오후',
+    'night'    : '야간',
+    'off'      : '연차',
+    'half'     : '반차',
+    'timeleave': '시간차',
+    'family'   : '가족사랑',
+    'fitness'  : '체력단련',
+    'groupoff' : '단체연차',
+    'edu'      : '교육',
+    'earlyout' : '조출',
+    'special'  : '특수',
+    'none'     : '-'
   };
-  const ts=L[type]||type;
-  if(EVENT_TYPES.has(type)){
-    let s=`${ts} ${name}`;
-    // ★ 반차/시간차/조출 시간 표시
-    if((type==='half'||type==='timeleave'||type==='earlyout')
-      &&halfTime&&halfTime!=='0'&&halfTime!=='')
-      s+=` +${halfTime}h`;
+  const ts = L[type] || type;
+  if (EVENT_TYPES.has(type)) {
+    let s = `${ts} ${name}`;
+    if ((type === 'half' || type === 'timeleave' || type === 'earlyout')
+      && halfTime && halfTime !== '0' && halfTime !== '') {
+      s += `+${halfTime}h`;
+    }
     return s;
   }
-  let s=`${ts} ${name}`;
-  if(ext&&ext!=='0'&&ext!=='') s+=` +${ext}h`;
+  let s = `${ts} ${name}`;
+  if (ext && ext !== '0' && ext !== '') s += `+${ext}h`;
   return s;
 }
 
-function renderShifts(container, sd){
-  // ★ 근무 순서 정렬: 오전 → 오후 → 야간 → 기타
+// ★ 수정 4: renderShifts 닫는 중괄호 누락 수정
+function renderShifts(container, sd) {
   const ORDER = {'am':0, 'pm':1, 'night':2};
-
-  // 근무자 (상단) - 오전/오후/야간 순서 정렬
   const workItems = sd
     .filter(s => !EVENT_TYPES.has(s.type) && s.type !== 'auto' && s.type !== 'none')
     .sort((a, b) => (ORDER[a.type] ?? 3) - (ORDER[b.type] ?? 3));
-
-  // 이벤트 (하단) - 오전/오후/야간 기준 원래 근무 순서로 정렬
   const eventItems = sd
     .filter(s => EVENT_TYPES.has(s.type) && s.type !== 'none')
     .sort((a, b) => (ORDER[a.origOrder] ?? 3) - (ORDER[b.origOrder] ?? 3));
 
-  if(workItems.length > 0){
+  if (workItems.length > 0) {
     const wa = document.createElement('div');
     wa.className = 'shift-area-work';
     workItems.forEach(s => {
@@ -759,8 +765,7 @@ function renderShifts(container, sd){
     });
     container.appendChild(wa);
   }
-
-  if(eventItems.length > 0){
+  if (eventItems.length > 0) {
     const hr = document.createElement('hr'); hr.className = 'event-divider';
     container.appendChild(hr);
     const ea = document.createElement('div'); ea.className = 'event-area';
@@ -773,291 +778,309 @@ function renderShifts(container, sd){
     });
     container.appendChild(ea);
   }
+} // ★ 누락된 닫는 중괄호 추가
 
-function renderJongju(container,jd){
-  if(!jd||!jd.active) return;
-  const row=document.createElement('div');row.className='shift-row';
-  const b=document.createElement('span');b.className='badge badge-jongju';
-  const tl={'am':'오전','pm':'오후','night':'야간','special':'설비'};
-  let text=`${tl[jd.type]||''} 종주`;
-  if(jd.hour&&jd.hour!=='0'&&jd.hour!=='') text+=` ${jd.hour}h`;
-  b.textContent=text;row.appendChild(b);container.appendChild(row);
+function renderJongju(container, jd) {
+  if (!jd || !jd.active) return;
+  const row = document.createElement('div'); row.className = 'shift-row';
+  const b = document.createElement('span'); b.className = 'badge badge-jongju';
+  const tl = {'am':'오전','pm':'오후','night':'야간','special':'설비'};
+  let text = `${tl[jd.type] || ''} 종주`;
+  if (jd.hour && jd.hour !== '0' && jd.hour !== '') text += ` ${jd.hour}h`;
+  b.textContent = text; row.appendChild(b); container.appendChild(row);
 }
 
-function renderMemo(container,memo){
-  if(!memo) return;
-  const icon=document.createElement('div');
-  icon.className='memo-icon';icon.textContent='📌';
-  const getT=()=>{
-    let t=document.getElementById('globalMemoTooltip');
-    if(!t){t=document.createElement('div');t.id='globalMemoTooltip';t.className='memo-tooltip';document.body.appendChild(t);}
+function renderMemo(container, memo) {
+  if (!memo) return;
+  const icon = document.createElement('div');
+  icon.className = 'memo-icon'; icon.textContent = '📌';
+  const getT = () => {
+    let t = document.getElementById('globalMemoTooltip');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'globalMemoTooltip';
+      t.className = 'memo-tooltip';
+      document.body.appendChild(t);
+    }
     return t;
   };
-  icon.addEventListener('mouseenter',()=>{
-    const t=getT();t.textContent=memo;t.style.display='block';
-    const r=icon.getBoundingClientRect();
-    t.style.left=Math.min(r.right+4,window.innerWidth-230)+'px';
-    t.style.top=Math.max(r.top-8,8)+'px';
+  icon.addEventListener('mouseenter', () => {
+    const t = getT(); t.textContent = memo; t.style.display = 'block';
+    const r = icon.getBoundingClientRect();
+    t.style.left = Math.min(r.right + 4, window.innerWidth - 230) + 'px';
+    t.style.top  = Math.max(r.top - 8, 8) + 'px';
   });
-  icon.addEventListener('mouseleave',()=>{getT().style.display='none';});
-  icon.addEventListener('touchstart',(e)=>{
-    e.stopPropagation();const t=getT();
-    if(t.style.display==='block'&&t.dataset.memo===memo){t.style.display='none';return;}
-    t.textContent=memo;t.dataset.memo=memo;
-    const r=icon.getBoundingClientRect();
-    t.style.left=Math.min(r.left,window.innerWidth-230)+'px';
-    t.style.top=Math.max(r.top-80,8)+'px';t.style.display='block';
+  icon.addEventListener('mouseleave', () => { getT().style.display = 'none'; });
+  icon.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    const t = getT();
+    if (t.style.display === 'block' && t.dataset.memo === memo) { t.style.display = 'none'; return; }
+    t.textContent = memo; t.dataset.memo = memo;
+    const r = icon.getBoundingClientRect();
+    t.style.left = Math.min(r.left, window.innerWidth - 230) + 'px';
+    t.style.top  = Math.max(r.top - 80, 8) + 'px';
+    t.style.display = 'block';
   });
   container.appendChild(icon);
 }
-document.addEventListener('touchstart',()=>{
-  const t=document.getElementById('globalMemoTooltip');if(t) t.style.display='none';
+
+document.addEventListener('touchstart', () => {
+  const t = document.getElementById('globalMemoTooltip');
+  if (t) t.style.display = 'none';
 });
 
-function renderShiftTime(td,shiftTimes){
-  if(!shiftTimes) return;
-  const isDefault=
-    shiftTimes.am===DEFAULT_SHIFT_TIMES.am&&
-    shiftTimes.pm===DEFAULT_SHIFT_TIMES.pm&&
-    shiftTimes.night===DEFAULT_SHIFT_TIMES.night;
-  if(isDefault) return;
-  const div=document.createElement('div');
-  div.style.cssText='font-size:.6rem;color:#718096;margin-top:2px;line-height:1.3;';
-  div.textContent=`🕐 오전${shiftTimes.am} 오후${shiftTimes.pm} 야간${shiftTimes.night}`;
+// ★ 수정 5: renderShiftTime textContent 템플릿 리터럴 오용 수정
+function renderShiftTime(td, shiftTimes) {
+  if (!shiftTimes) return;
+  const isDefault =
+    shiftTimes.am    === DEFAULT_SHIFT_TIMES.am &&
+    shiftTimes.pm    === DEFAULT_SHIFT_TIMES.pm &&
+    shiftTimes.night === DEFAULT_SHIFT_TIMES.night;
+  if (isDefault) return;
+  const div = document.createElement('div');
+  div.style.cssText = 'font-size:.6rem;color:#718096;margin-top:2px;line-height:1.3;';
+  div.textContent = `🕐 오전${shiftTimes.am} 오후${shiftTimes.pm} 야간${shiftTimes.night}`;
   td.appendChild(div);
 }
 
-function renderCellContent(td, dayType, ov, auto){
+function renderCellContent(td, dayType, ov, auto) {
   const hj = ov && ov.jongju && ov.jongju.active;
   const hm = ov && ov.shifts;
 
-  if(dayType === 'off'){
-    if(!hj){const ol=document.createElement('div');ol.className='off-label';ol.textContent='🔘 휴무';td.appendChild(ol);return;}
-    else{const tag=document.createElement('div');tag.className='off-jongju-tag';tag.textContent='🔘 휴무일 특별투입';td.appendChild(tag);}
-  } else if(dayType === 'special'){
-    const st=document.createElement('div');st.className='special-tag';st.textContent='⭐ 특근';td.appendChild(st);
+  if (dayType === 'off') {
+    if (!hj) {
+      const ol = document.createElement('div');
+      ol.className = 'off-label'; ol.textContent = '🔘 휴무';
+      td.appendChild(ol); return;
+    } else {
+      const tag = document.createElement('div');
+      tag.className = 'off-jongju-tag'; tag.textContent = '🔘 휴무일 특별투입';
+      td.appendChild(tag);
+    }
+  } else if (dayType === 'special') {
+    const st = document.createElement('div');
+    st.className = 'special-tag'; st.textContent = '⭐ 특근';
+    td.appendChild(st);
   }
 
-  if(dayType !== 'off'){
-    if(hm){
-      // ★ 핵심: origOrder(원래 근무 순서) 추가해서 정렬 기준으로 사용
-      const autoRef = getAutoShift(
-        new Date(parseInt(ov.dayType ? modalKey?.split('-')[0] || currentYear : currentYear),
-          currentMonth, 1)
-      );
+  const ORDER = {'am':0, 'pm':1, 'night':2};
+  const getOrigOrder = (mi) => {
+    if (auto.am    === mi) return 0;
+    if (auto.pm    === mi) return 1;
+    if (auto.night === mi) return 2;
+    return 3;
+  };
 
-      // ★ 오전/오후/야간 순서 기준으로 shifts 정렬
-      const ORDER = {'am':0, 'pm':1, 'night':2};
-      const getOrigOrder = (mi) => {
-        if(auto.am === mi) return 0;
-        if(auto.pm === mi) return 1;
-        if(auto.night === mi) return 2;
-        return 3;
-      };
-
+  if (dayType !== 'off') {
+    if (hm) {
       const sd = members.map((name, mi) => ({
         name,
         type:      ov.shifts[mi].type,
         ext:       ov.shifts[mi].ext || '',
         halfTime:  ov.shifts[mi].halfTime || '',
-        origOrder: getOrigOrder(mi),  // ★ 원래 근무 순서
+        origOrder: getOrigOrder(mi),
       })).filter(s => s.type !== 'none');
-
-      // ★ 오전→오후→야간 순서로 정렬 후 렌더링
       sd.sort((a, b) => {
         const aOrder = EVENT_TYPES.has(a.type) ? a.origOrder : (ORDER[a.type] ?? 3);
         const bOrder = EVENT_TYPES.has(b.type) ? b.origOrder : (ORDER[b.type] ?? 3);
         return aOrder - bOrder;
       });
-
       renderShifts(td, sd);
     } else {
-      // 자동순환 - 이미 오전/오후/야간 순서
-      renderShifts(td,[
-        {name:members[auto.am],    type:'am',    ext:'', halfTime:'', origOrder:0},
-        {name:members[auto.pm],    type:'pm',    ext:'', halfTime:'', origOrder:1},
-        {name:members[auto.night], type:'night', ext:'', halfTime:'', origOrder:2},
+      renderShifts(td, [
+        {name: members[auto.am],    type: 'am',    ext: '', halfTime: '', origOrder: 0},
+        {name: members[auto.pm],    type: 'pm',    ext: '', halfTime: '', origOrder: 1},
+        {name: members[auto.night], type: 'night', ext: '', halfTime: '', origOrder: 2},
       ]);
     }
-  } else if(hj && hm){
+  } else if (hj && hm) {
     const sd = members.map((name, mi) => ({
       name,
-      type:     ov.shifts[mi].type,
-      ext:      ov.shifts[mi].ext || '',
-      halfTime: ov.shifts[mi].halfTime || '',
-      origOrder: auto.am===mi ? 0 : auto.pm===mi ? 1 : auto.night===mi ? 2 : 3,
+      type:      ov.shifts[mi].type,
+      ext:       ov.shifts[mi].ext || '',
+      halfTime:  ov.shifts[mi].halfTime || '',
+      origOrder: getOrigOrder(mi),
     })).filter(s => s.type !== 'none' && s.type !== 'auto');
-    if(sd.length > 0) renderShifts(td, sd);
+    if (sd.length > 0) renderShifts(td, sd);
   }
 
-  if(hj) renderJongju(td, ov.jongju);
-  if(ov && ov.shiftTimes) renderShiftTime(td, ov.shiftTimes);
+  if (hj) renderJongju(td, ov.jongju);
+  if (ov && ov.shiftTimes) renderShiftTime(td, ov.shiftTimes);
 }
 
 // ──────────────────────────────────────────────
 //  달력 렌더링
 // ──────────────────────────────────────────────
-function renderCalendar(){
-  const mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-  document.getElementById('monthTitle').textContent=`${currentYear}년 ${mn[currentMonth]}`;
-  const tbody=document.getElementById('calBody');tbody.innerHTML='';
-  const firstDay=new Date(currentYear,currentMonth,1).getDay();
-  const lastDate=new Date(currentYear,currentMonth+1,0).getDate();
-  const prevLast=new Date(currentYear,currentMonth,0).getDate();
-  const today=new Date();
-  let date=1,nextDate=1;
-  for(let row=0;row<6;row++){
-    const tr=document.createElement('tr');let rhc=false;
-    for(let col=0;col<7;col++){
-      const td=document.createElement('td');
-      let cellDate,isCurrent=true;const cn=row*7+col;
-      if(cn<firstDay){cellDate=new Date(currentYear,currentMonth-1,prevLast-firstDay+cn+1);isCurrent=false;td.classList.add('other-month');}
-      else if(date>lastDate){cellDate=new Date(currentYear,currentMonth+1,nextDate++);isCurrent=false;td.classList.add('other-month');}
-      else{cellDate=new Date(currentYear,currentMonth,date++);rhc=true;}
-      if(col===0) td.classList.add('sunday');
-      if(col===6) td.classList.add('saturday');
-      if(cellDate.toDateString()===today.toDateString()) td.classList.add('today');
-      const key=toKey(cellDate);
-      const ov=overrides[key];
-      const dayType=ov?ov.dayType:getDefaultDayType(cellDate);
-      const hj=ov&&ov.jongju&&ov.jongju.active;
-      if(!td.classList.contains('other-month')){
-        td.classList.add(dayType==='off'?'day-off':dayType==='special'?'day-special':'day-normal');
-        if(dayType==='off'&&hj) td.classList.add('has-jongju');
+function renderCalendar() {
+  const mn = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('monthTitle').textContent = `${currentYear}년 ${mn[currentMonth]}`;
+  const tbody = document.getElementById('calBody'); tbody.innerHTML = '';
+  const firstDay  = new Date(currentYear, currentMonth, 1).getDay();
+  const lastDate  = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const prevLast  = new Date(currentYear, currentMonth, 0).getDate();
+  const today     = new Date();
+  let date = 1, nextDate = 1;
+
+  for (let row = 0; row < 6; row++) {
+    const tr = document.createElement('tr'); let rhc = false;
+    for (let col = 0; col < 7; col++) {
+      const td = document.createElement('td');
+      let cellDate, isCurrent = true;
+      const cn = row * 7 + col;
+      if (cn < firstDay) {
+        cellDate = new Date(currentYear, currentMonth - 1, prevLast - firstDay + cn + 1);
+        isCurrent = false; td.classList.add('other-month');
+      } else if (date > lastDate) {
+        cellDate = new Date(currentYear, currentMonth + 1, nextDate++);
+        isCurrent = false; td.classList.add('other-month');
+      } else {
+        cellDate = new Date(currentYear, currentMonth, date++); rhc = true;
       }
-      const auto=getAutoShift(cellDate);
-      const numDiv=document.createElement('div');numDiv.className='date-num';numDiv.textContent=cellDate.getDate();
-      if(ov){const m=document.createElement('span');m.className='modified-mark';m.textContent='🔧';numDiv.appendChild(m);}
+      if (col === 0) td.classList.add('sunday');
+      if (col === 6) td.classList.add('saturday');
+      if (cellDate.toDateString() === today.toDateString()) td.classList.add('today');
+
+      const key = toKey(cellDate);
+      const ov  = overrides[key];
+      const dayType = ov ? ov.dayType : getDefaultDayType(cellDate);
+      const hj  = ov && ov.jongju && ov.jongju.active;
+
+      if (!td.classList.contains('other-month')) {
+        td.classList.add(dayType === 'off' ? 'day-off' : dayType === 'special' ? 'day-special' : 'day-normal');
+        if (dayType === 'off' && hj) td.classList.add('has-jongju');
+      }
+
+      const auto   = getAutoShift(cellDate);
+      const numDiv = document.createElement('div');
+      numDiv.className = 'date-num';
+      numDiv.textContent = cellDate.getDate();
+      if (ov) {
+        const m = document.createElement('span');
+        m.className = 'modified-mark'; m.textContent = '🔧';
+        numDiv.appendChild(m);
+      }
       td.appendChild(numDiv);
-      const holiday=getHoliday(key);
-      if(holiday){const hl=document.createElement('div');hl.className='holiday-label';hl.textContent='🎌 '+holiday;td.appendChild(hl);}
-      if(!td.classList.contains('other-month')) renderCellContent(td,dayType,ov,auto);
-      if(ov&&ov.memo) renderMemo(td,ov.memo);
-      if(isCurrent){
-        td.addEventListener('click',()=>{
-          if(isViewOnly||!currentUser){
-            const locked=document.getElementById('editLocked');
+
+      const holiday = getHoliday(key);
+      if (holiday) {
+        const hl = document.createElement('div');
+        hl.className = 'holiday-label'; hl.textContent = '🎌 ' + holiday;
+        td.appendChild(hl);
+      }
+
+      if (!td.classList.contains('other-month')) renderCellContent(td, dayType, ov, auto);
+      if (ov && ov.memo) renderMemo(td, ov.memo);
+
+      if (isCurrent) {
+        td.addEventListener('click', () => {
+          if (isViewOnly || !currentUser) {
+            const locked = document.getElementById('editLocked');
             locked.classList.add('show');
-            setTimeout(()=>locked.classList.remove('show'),2000);
+            setTimeout(() => locked.classList.remove('show'), 2000);
             return;
           }
-          openModal(key,cellDate);
+          openModal(key, cellDate);
         });
       }
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
-    if(row>=4&&!rhc) break;
+    if (row >= 4 && !rhc) break;
   }
 }
 
-async function onYearChange(){
-  currentYear=parseInt(document.getElementById('yearSel').value);
-  currentMonth=0;
+async function onYearChange() {
+  currentYear  = parseInt(document.getElementById('yearSel').value);
+  currentMonth = 0;
   await fetchHolidays(currentYear);
   renderCalendar();
 }
-function prevMonth(){
+
+function prevMonth() {
   currentMonth--;
-  if(currentMonth<0){currentMonth=11;currentYear--;document.getElementById('yearSel').value=currentYear;fetchHolidays(currentYear).then(()=>renderCalendar());return;}
+  if (currentMonth < 0) {
+    currentMonth = 11; currentYear--;
+    document.getElementById('yearSel').value = currentYear;
+    fetchHolidays(currentYear).then(() => renderCalendar());
+    return;
+  }
   renderCalendar();
 }
-function nextMonth(){
+
+function nextMonth() {
   currentMonth++;
-  if(currentMonth>11){currentMonth=0;currentYear++;document.getElementById('yearSel').value=currentYear;fetchHolidays(currentYear).then(()=>renderCalendar());return;}
+  if (currentMonth > 11) {
+    currentMonth = 0; currentYear++;
+    document.getElementById('yearSel').value = currentYear;
+    fetchHolidays(currentYear).then(() => renderCalendar());
+    return;
+  }
   renderCalendar();
 }
-function applyConfig(){
-  members[0]=document.getElementById('nameA').value||'누리';
-  members[1]=document.getElementById('nameB').value||'건후';
-  members[2]=document.getElementById('nameC').value||'승윤';
-  baseAmIndex=parseInt(document.getElementById('firstShift').value);
+
+function applyConfig() {
+  members[0]  = document.getElementById('nameA').value || '누리';
+  members[1]  = document.getElementById('nameB').value || '건후';
+  members[2]  = document.getElementById('nameC').value || '승윤';
+  baseAmIndex = parseInt(document.getElementById('firstShift').value);
   saveToFirebase();
 }
-function selectDayType(type){
-  currentDayType=type;
-  document.getElementById('btnOff').className='day-type-btn'+(type==='off'?' selected-off':'');
-  document.getElementById('btnSpecial').className='day-type-btn'+(type==='special'?' selected-special':'');
-  document.getElementById('btnNormal').className='day-type-btn'+(type==='normal'?' selected-normal':'');
-  document.getElementById('editSection').classList.toggle('show',type!=='off');
+
+function selectDayType(type) {
+  currentDayType = type;
+  document.getElementById('btnOff').className     = 'day-type-btn' + (type === 'off'     ? ' selected-off'     : '');
+  document.getElementById('btnSpecial').className = 'day-type-btn' + (type === 'special' ? ' selected-special' : '');
+  document.getElementById('btnNormal').className  = 'day-type-btn' + (type === 'normal'  ? ' selected-normal'  : '');
+  document.getElementById('editSection').classList.toggle('show', type !== 'off');
   document.getElementById('jongjuMemberNotice').classList.toggle('show',
-    type==='off'&&document.getElementById('jongjuToggle').checked);
-}
-function toggleJongju(){
-  const c=document.getElementById('jongjuToggle').checked;
-  document.getElementById('jongjuToggleLabel').textContent=c?'✅ 종주 투입':'투입 없음';
-  document.getElementById('jongjuDetail').classList.toggle('show',c);
-  document.getElementById('jongjuMemberNotice').classList.toggle('show',c&&currentDayType==='off');
-}
-function resetTime(type){
-  const ids={'am':'timeAm','pm':'timePm','night':'timeNight'};
-  document.getElementById(ids[type]).value=DEFAULT_SHIFT_TIMES[type];
+    type === 'off' && document.getElementById('jongjuToggle').checked);
 }
 
-function applyLeaveAuto(li, autoShift){
-  members.forEach((_,mi)=>{
-    const sel = document.getElementById(`sel_${mi}`);
-    const ei  = document.getElementById(`ext_${mi}`);
-    const row = document.getElementById(`mrow_${mi}`);
-    const hw  = document.getElementById(`halfwrap_${mi}`);
+function toggleJongju() {
+  const c = document.getElementById('jongjuToggle').checked;
+  document.getElementById('jongjuToggleLabel').textContent = c ? '✅ 종주 투입' : '투입 없음';
+  document.getElementById('jongjuDetail').classList.toggle('show', c);
+  document.getElementById('jongjuMemberNotice').classList.toggle('show', c && currentDayType === 'off');
+}
 
-    if(li === -1){
-      // 정상근무 → 전체 auto 리셋
-      sel.value='auto'; ei.value='';
-      if(hw) hw.classList.remove('show');
-      row.classList.remove('is-off','is-ext');
+function resetTime(type) {
+  const ids = {'am':'timeAm', 'pm':'timePm', 'night':'timeNight'};
+  document.getElementById(ids[type]).value = DEFAULT_SHIFT_TIMES[type];
+}
+
+// ★ 수정 6: applyLeaveAuto 중복 코드 블록 제거 및 중괄호 정리
+function applyLeaveAuto(li, autoShift) {
+  members.forEach((_, mi) => {
+    const sel = document.getElementById('sel_' + mi);
+    const ei  = document.getElementById('ext_' + mi);
+    const row = document.getElementById('mrow_' + mi);
+    const hw  = document.getElementById('halfwrap_' + mi);
+    if (li === -1) {
+      sel.value = 'auto'; ei.value = '';
+      if (hw) hw.classList.remove('show');
+      row.classList.remove('is-off', 'is-ext');
       return;
     }
-
-    if(mi === li){
-      // 연차 당사자 → 연차 표시
-      ei.value='';
-      if(hw) hw.classList.remove('show');
+    if (mi === li) {
+      sel.value = 'off';
+      ei.value = '';
+      if (hw) hw.classList.remove('show');
       row.classList.add('is-off');
       row.classList.remove('is-ext');
-
     } else {
-      // ★ 핵심: 오전 또는 야간 담당자만 +4h
-      // 오후 담당자가 연차이므로 나머지는 오전/야간 유지
       let myType = 'am';
-      if(autoShift.pm    === mi) myType = 'pm';
-      if(autoShift.night === mi) myType = 'night';
-
-      // ★ 오전이나 야간 담당자 → +4h 적용
-      // ★ 오후 담당자가 연차인 경우: 오전/야간만 +4h
-      if(myType === 'am' || myType === 'night'){
-        sel.value = myType;
-        ei.value  = '4';
-        row.classList.add('is-ext');
-        row.classList.remove('is-off');
-      } else {
-        // 오후 담당자가 남아있는 경우 (오전/야간이 연차일 때)
-        sel.value = myType;
-        ei.value  = '4';
-        row.classList.add('is-ext');
-        row.classList.remove('is-off');
-      }
-      if(hw) hw.classList.remove('show');
+      if (autoShift.pm    === mi) myType = 'pm';
+      if (autoShift.night === mi) myType = 'night';
+      sel.value = myType;
+      ei.value  = '4';
+      row.classList.add('is-ext');
+      row.classList.remove('is-off');
+      if (hw) hw.classList.remove('show');
     }
   });
-
   const notice = document.getElementById('leaveNotice');
-  if(li >= 0){
-    const others = members.filter((_,i) => i !== li);
-    // ★ 오전/야간 담당자 표시
-    const amName    = members[autoShift.am]    !== members[li] ? members[autoShift.am]    : null;
-    const nightName = members[autoShift.night] !== members[li] ? members[autoShift.night] : null;
-    const extNames  = [amName, nightName].filter(Boolean);
-    notice.textContent = `✅ ${members[li]} 연차 → ${extNames.join(', ')} 자동 +4h 적용됨`;
-    notice.classList.add('show');
-  } else {
-    notice.classList.remove('show');
-  }
-}
-
-  const notice = document.getElementById('leaveNotice');
-  if(li >= 0){
-    const others = members.filter((_,i) => i !== li);
+  if (li >= 0) {
+    const others = members.filter((_, i) => i !== li);
     notice.textContent = `✅ ${members[li]} 연차 → ${others.join(', ')} 자동 +4h 적용됨`;
     notice.classList.add('show');
   } else {
@@ -1065,155 +1088,208 @@ function applyLeaveAuto(li, autoShift){
   }
 }
 
-function openModal(key,date){
-  modalKey=key;currentAutoShift=getAutoShift(date);
-  const existing=overrides[key];
-  const initType=existing?existing.dayType:getDefaultDayType(date);
-  document.getElementById('modalTitle').textContent=
+function openModal(key, date) {
+  modalKey = key; currentAutoShift = getAutoShift(date);
+  const existing  = overrides[key];
+  const initType  = existing ? existing.dayType : getDefaultDayType(date);
+
+  document.getElementById('modalTitle').textContent =
     `📅 ${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일 근무 편집`;
+
   selectDayType(initType);
-  const existingTimes=existing?existing.shiftTimes||{}:{};
-  document.getElementById('timeAm').value=existingTimes.am||DEFAULT_SHIFT_TIMES.am;
-  document.getElementById('timePm').value=existingTimes.pm||DEFAULT_SHIFT_TIMES.pm;
-  document.getElementById('timeNight').value=existingTimes.night||DEFAULT_SHIFT_TIMES.night;
-  const lq=document.getElementById('leaveQuick');lq.innerHTML='';
-  const nb=document.createElement('button');nb.className='leave-btn none-active';nb.textContent='✅ 정상근무';
-  nb.dataset.idx='-1';nb.onclick=()=>setLeaveBtn(-1,currentAutoShift);lq.appendChild(nb);
-  members.forEach((name,mi)=>{
-    const btn=document.createElement('button');btn.className='leave-btn';btn.textContent=`🏖️ ${name} 연차`;
-    btn.dataset.idx=mi;btn.onclick=()=>setLeaveBtn(mi,currentAutoShift);lq.appendChild(btn);
+
+  const existingTimes = existing ? existing.shiftTimes || {} : {};
+  document.getElementById('timeAm').value    = existingTimes.am    || DEFAULT_SHIFT_TIMES.am;
+  document.getElementById('timePm').value    = existingTimes.pm    || DEFAULT_SHIFT_TIMES.pm;
+  document.getElementById('timeNight').value = existingTimes.night || DEFAULT_SHIFT_TIMES.night;
+
+  const lq = document.getElementById('leaveQuick'); lq.innerHTML = '';
+  const nb = document.createElement('button');
+  nb.className = 'leave-btn none-active'; nb.textContent = '✅ 정상근무';
+  nb.dataset.idx = '-1'; nb.onclick = () => setLeaveBtn(-1, currentAutoShift);
+  lq.appendChild(nb);
+
+  members.forEach((name, mi) => {
+    const btn = document.createElement('button');
+    btn.className = 'leave-btn';
+    btn.textContent = `🏖️ ${name} 연차`;
+    btn.dataset.idx = mi;
+    btn.onclick = () => setLeaveBtn(mi, currentAutoShift);
+    lq.appendChild(btn);
   });
-  const container=document.getElementById('memberRows');container.innerHTML='';
-  members.forEach((name,mi)=>{
-    let at='am';if(currentAutoShift.pm===mi)at='pm';else if(currentAutoShift.night===mi)at='night';
-    const saved=existing?existing.shifts?.[mi]:null;
-    const curType=saved?saved.type:'auto';
-    const curExt=saved?saved.ext:'';
-    const curHT=saved?saved.halfTime||'':'';
-    const row=document.createElement('div');row.className='member-row';row.id=`mrow_${mi}`;
-    const ns=document.createElement('span');ns.className='mname';ns.textContent=name;row.appendChild(ns);
-    const sel=document.createElement('select');sel.id=`sel_${mi}`;
-    SHIFT_TYPES.forEach(opt=>{
-      const o=document.createElement('option');o.value=opt.value;
-      o.textContent=opt.value==='auto'?`(자동: ${{'am':'오전','pm':'오후','night':'야간'}[at]})`:opt.label;
-      if(opt.value===curType)o.selected=true;sel.appendChild(o);
+
+  const container = document.getElementById('memberRows'); container.innerHTML = '';
+  members.forEach((name, mi) => {
+    let at = 'am';
+    if (currentAutoShift.pm    === mi) at = 'pm';
+    else if (currentAutoShift.night === mi) at = 'night';
+    const saved  = existing ? existing.shifts?.[mi] : null;
+    const curType = saved ? saved.type    : 'auto';
+    const curExt  = saved ? saved.ext     : '';
+    const curHT   = saved ? saved.halfTime || '' : '';
+
+    const row = document.createElement('div');
+    row.className = 'member-row'; row.id = 'mrow_' + mi;
+
+    const ns = document.createElement('span');
+    ns.className = 'mname'; ns.textContent = name; row.appendChild(ns);
+
+    const sel = document.createElement('select'); sel.id = 'sel_' + mi;
+    SHIFT_TYPES.forEach(opt => {
+      const o = document.createElement('option'); o.value = opt.value;
+      o.textContent = opt.value === 'auto'
+        ? `(자동: ${{ 'am':'오전','pm':'오후','night':'야간' }[at]})`
+        : opt.label;
+      if (opt.value === curType) o.selected = true;
+      sel.appendChild(o);
     });
-    // ★ 반차/시간차/조출 선택 시 시간 입력란 표시
-    sel.onchange=()=>{
-      const hw=document.getElementById(`halfwrap_${mi}`);
+
+    // ★ 수정 7: sel.onchange 내 getElementById 괄호 누락 수정
+    sel.onchange = () => {
+      const hw = document.getElementById('halfwrap_' + mi);
       hw.classList.toggle('show',
-        sel.value==='half'||sel.value==='timeleave'||sel.value==='earlyout'
+        sel.value === 'half' || sel.value === 'timeleave' || sel.value === 'earlyout'
       );
-      const hl=hw.querySelector('span');
-      if(hl){
-        if(sel.value==='timeleave') hl.textContent='시간차';
-        else if(sel.value==='earlyout') hl.textContent='조출';
-        else hl.textContent='반차';
+      const hl = hw.querySelector('span');
+      if (hl) {
+        if (sel.value === 'timeleave')  hl.textContent = '시간차';
+        else if (sel.value === 'earlyout') hl.textContent = '조출';
+        else hl.textContent = '반차';
       }
       syncLeaveButtons(currentAutoShift);
     };
     row.appendChild(sel);
-    const ew=document.createElement('div');ew.className='ext-wrap';
-    const ps=document.createElement('span');ps.textContent='+';
-    const ei=document.createElement('input');ei.type='number';ei.min='0';ei.max='24';ei.step='0.5';
-    ei.id=`ext_${mi}`;ei.value=curExt||'';ei.placeholder='0';
-    const hs=document.createElement('span');hs.textContent='h';
-    ew.appendChild(ps);ew.appendChild(ei);ew.appendChild(hs);row.appendChild(ew);
-    // ★ 반차/시간차/조출 시간 입력란
-    const hw=document.createElement('div');hw.className='half-time-wrap';hw.id=`halfwrap_${mi}`;
-    if(curType==='half'||curType==='timeleave'||curType==='earlyout') hw.classList.add('show');
-    const hl=document.createElement('span');
-    hl.textContent=curType==='timeleave'?'시간차':curType==='earlyout'?'조출':'반차';
-    const hi=document.createElement('input');hi.type='number';hi.min='0.5';hi.max='12';hi.step='0.5';
-    hi.id=`half_${mi}`;hi.value=curHT||'';hi.placeholder='시간';
-    const hh=document.createElement('span');hh.textContent='h';
-    hw.appendChild(hl);hw.appendChild(hi);hw.appendChild(hh);row.appendChild(hw);
+
+    const ew = document.createElement('div'); ew.className = 'ext-wrap';
+    const ps = document.createElement('span'); ps.textContent = '+';
+    const ei = document.createElement('input');
+    ei.type = 'number'; ei.min = '0'; ei.max = '24'; ei.step = '0.5';
+    ei.id = 'ext_' + mi; ei.value = curExt || ''; ei.placeholder = '0';
+    const hs = document.createElement('span'); hs.textContent = 'h';
+    ew.appendChild(ps); ew.appendChild(ei); ew.appendChild(hs); row.appendChild(ew);
+
+    const hw = document.createElement('div');
+    hw.className = 'half-time-wrap'; hw.id = 'halfwrap_' + mi;
+    if (curType === 'half' || curType === 'timeleave' || curType === 'earlyout') hw.classList.add('show');
+    const hl = document.createElement('span');
+    hl.textContent = curType === 'timeleave' ? '시간차' : curType === 'earlyout' ? '조출' : '반차';
+    const hi = document.createElement('input');
+    hi.type = 'number'; hi.min = '0.5'; hi.max = '12'; hi.step = '0.5';
+    hi.id = 'half_' + mi; hi.value = curHT || ''; hi.placeholder = '시간';
+    const hh = document.createElement('span'); hh.textContent = 'h';
+    hw.appendChild(hl); hw.appendChild(hi); hw.appendChild(hh); row.appendChild(hw);
+
     container.appendChild(row);
-    if(saved){
-      if(EVENT_TYPES.has(saved.type)) row.classList.add('is-off');
-      else if(saved.ext&&saved.ext!=='0'&&saved.ext!=='') row.classList.add('is-ext');
+
+    if (saved) {
+      if (EVENT_TYPES.has(saved.type)) row.classList.add('is-off');
+      else if (saved.ext && saved.ext !== '0' && saved.ext !== '') row.classList.add('is-ext');
     }
   });
-  document.getElementById('memoInput').value=existing?existing.memo||'':'';
+
+  document.getElementById('memoInput').value = existing ? existing.memo || '' : '';
   document.getElementById('leaveNotice').classList.remove('show');
-  if(existing&&existing.shifts){
-    const oi=existing.shifts.findIndex(s=>s&&EVENT_TYPES.has(s.type));
-    highlightLeaveBtn(oi>=0?oi:-1);
-    if(oi>=0){
-      const others=members.filter((_,i)=>i!==oi);
-      const n=document.getElementById('leaveNotice');
-      n.textContent=`✅ ${members[oi]} 이벤트 → ${others.join(', ')} +4h 적용됨`;
+
+  if (existing && existing.shifts) {
+    const oi = existing.shifts.findIndex(s => s && EVENT_TYPES.has(s.type));
+    highlightLeaveBtn(oi >= 0 ? oi : -1);
+    if (oi >= 0) {
+      const others = members.filter((_, i) => i !== oi);
+      const n = document.getElementById('leaveNotice');
+      n.textContent = `✅ ${members[oi]} 이벤트 → ${others.join(', ')} +4h 적용됨`;
       n.classList.add('show');
     }
-  }else{highlightLeaveBtn(-1);}
-  const jd=existing?existing.jongju:null;const jt=document.getElementById('jongjuToggle');
-  jt.checked=!!(jd&&jd.active);
-  document.getElementById('jongjuToggleLabel').textContent=jt.checked?'✅ 종주 투입':'투입 없음';
-  document.getElementById('jongjuDetail').classList.toggle('show',jt.checked);
-  document.getElementById('jongjuType').value=jd?jd.type||'am':'am';
-  document.getElementById('jongjuHour').value=jd?jd.hour||'':'';
-  document.getElementById('jongjuMemberNotice').classList.toggle('show',jt.checked&&initType==='off');
+  } else {
+    highlightLeaveBtn(-1);
+  }
+
+  const jd = existing ? existing.jongju : null;
+  const jt = document.getElementById('jongjuToggle');
+  jt.checked = !!(jd && jd.active);
+  document.getElementById('jongjuToggleLabel').textContent = jt.checked ? '✅ 종주 투입' : '투입 없음';
+  document.getElementById('jongjuDetail').classList.toggle('show', jt.checked);
+  document.getElementById('jongjuType').value  = jd ? jd.type || 'am' : 'am';
+  document.getElementById('jongjuHour').value  = jd ? jd.hour || ''   : '';
+  document.getElementById('jongjuMemberNotice').classList.toggle('show', jt.checked && initType === 'off');
+
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function setLeaveBtn(li,auto){highlightLeaveBtn(li);applyLeaveAuto(li,auto);}
-function highlightLeaveBtn(li){
-  document.querySelectorAll('.leave-btn').forEach(btn=>{
-    btn.classList.remove('active','none-active');const idx=parseInt(btn.dataset.idx);
-    if(idx===-1&&li===-1)btn.classList.add('none-active');else if(idx===li)btn.classList.add('active');
+function setLeaveBtn(li, auto) { highlightLeaveBtn(li); applyLeaveAuto(li, auto); }
+
+function highlightLeaveBtn(li) {
+  document.querySelectorAll('.leave-btn').forEach(btn => {
+    btn.classList.remove('active','none-active');
+    const idx = parseInt(btn.dataset.idx);
+    if (idx === -1 && li === -1) btn.classList.add('none-active');
+    else if (idx === li) btn.classList.add('active');
   });
 }
-function syncLeaveButtons(auto){
-  const oi=members.findIndex((_,mi)=>EVENT_TYPES.has(document.getElementById(`sel_${mi}`)?.value));
-  highlightLeaveBtn(oi);
-  const notice=document.getElementById('leaveNotice');
-  if(oi>=0){
-    const others=members.filter((_,i)=>i!==oi);
-    notice.textContent=`✅ ${members[oi]} 이벤트 → ${others.join(', ')} +4h 적용됨`;
-    notice.classList.add('show');
-  }else{notice.classList.remove('show');}
-}
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');modalKey=null;}
 
-function saveDay(){
-  const ja=document.getElementById('jongjuToggle').checked;
-  const jd={active:ja,type:document.getElementById('jongjuType').value,hour:document.getElementById('jongjuHour').value||''};
-  const shiftTimes={
-    am:    document.getElementById('timeAm').value    ||DEFAULT_SHIFT_TIMES.am,
-    pm:    document.getElementById('timePm').value    ||DEFAULT_SHIFT_TIMES.pm,
-    night: document.getElementById('timeNight').value ||DEFAULT_SHIFT_TIMES.night,
+// ★ 수정 8: syncLeaveButtons 내 getElementById 괄호 누락 수정
+function syncLeaveButtons(auto) {
+  const oi = members.findIndex((_, mi) => EVENT_TYPES.has(document.getElementById('sel_' + mi)?.value));
+  highlightLeaveBtn(oi);
+  const notice = document.getElementById('leaveNotice');
+  if (oi >= 0) {
+    const others = members.filter((_, i) => i !== oi);
+    notice.textContent = `✅ ${members[oi]} 이벤트 → ${others.join(', ')} +4h 적용됨`;
+    notice.classList.add('show');
+  } else {
+    notice.classList.remove('show');
+  }
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); modalKey = null; }
+
+function saveDay() {
+  const ja = document.getElementById('jongjuToggle').checked;
+  const jd = {
+    active: ja,
+    type:   document.getElementById('jongjuType').value,
+    hour:   document.getElementById('jongjuHour').value || ''
   };
-  if(currentDayType==='off'){
-    const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
-    if(dt==='off'&&!ja){delete overrides[modalKey];}
-    else{overrides[modalKey]={dayType:'off',shifts:null,memo:'',jongju:jd,shiftTimes};}
-  }else{
-    const shifts=members.map((_,mi)=>({
-      type:     document.getElementById(`sel_${mi}`).value,
-      ext:      document.getElementById(`ext_${mi}`).value||'',
-      halfTime: document.getElementById(`half_${mi}`)?.value||'',
-    }));
-    const memo=document.getElementById('memoInput').value.trim();
-    const hasEvent=shifts.some(s=>EVENT_TYPES.has(s.type)&&s.type!=='none');
-    const allAuto=shifts.every(s=>s.type==='auto');
-    const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
-    if(allAuto&&!memo&&currentDayType===dt&&!ja){
+  const shiftTimes = {
+    am:    document.getElementById('timeAm').value    || DEFAULT_SHIFT_TIMES.am,
+    pm:    document.getElementById('timePm').value    || DEFAULT_SHIFT_TIMES.pm,
+    night: document.getElementById('timeNight').value || DEFAULT_SHIFT_TIMES.night,
+  };
+
+  if (currentDayType === 'off') {
+    const dt = getDefaultDayType(new Date(modalKey.replace(/-/g, '/')));
+    if (dt === 'off' && !ja) {
       delete overrides[modalKey];
-    }else{
-      const finalShifts=shifts.map((s,mi)=>{
-        if(s.type==='auto'&&hasEvent){
-          let autoType='am';
-          if(currentAutoShift.pm===mi) autoType='pm';
-          else if(currentAutoShift.night===mi) autoType='night';
-          return{type:autoType,ext:s.ext,halfTime:s.halfTime};
+    } else {
+      overrides[modalKey] = { dayType: 'off', shifts: null, memo: '', jongju: jd, shiftTimes };
+    }
+  } else {
+    const shifts = members.map((_, mi) => ({
+      type:     document.getElementById('sel_'  + mi).value,
+      ext:      document.getElementById('ext_'  + mi).value || '',
+      halfTime: document.getElementById('half_' + mi)?.value || '',
+    }));
+    const memo     = document.getElementById('memoInput').value.trim();
+    const hasEvent = shifts.some(s => EVENT_TYPES.has(s.type) && s.type !== 'none');
+    const allAuto  = shifts.every(s => s.type === 'auto');
+    const dt       = getDefaultDayType(new Date(modalKey.replace(/-/g, '/')));
+
+    if (allAuto && !memo && currentDayType === dt && !ja) {
+      delete overrides[modalKey];
+    } else {
+      const finalShifts = shifts.map((s, mi) => {
+        if (s.type === 'auto' && hasEvent) {
+          let autoType = 'am';
+          if (currentAutoShift.pm    === mi) autoType = 'pm';
+          else if (currentAutoShift.night === mi) autoType = 'night';
+          return { type: autoType, ext: s.ext, halfTime: s.halfTime };
         }
         return s;
       });
-      overrides[modalKey]={
-        dayType:currentDayType,
-        shifts:allAuto&&!hasEvent?null:finalShifts,
+      overrides[modalKey] = {
+        dayType: currentDayType,
+        shifts:  allAuto && !hasEvent ? null : finalShifts,
         memo,
-        jongju:jd,
+        jongju:  jd,
         shiftTimes,
       };
     }
@@ -1222,7 +1298,7 @@ function saveDay(){
   saveToFirebase();
 }
 
-function resetDay(){
+function resetDay() {
   delete overrides[modalKey];
   closeModal();
   saveToFirebase();
@@ -1231,10 +1307,10 @@ function resetDay(){
 // ──────────────────────────────────────────────
 //  초기 실행
 // ──────────────────────────────────────────────
-(async()=>{
+(async () => {
   initPinScreen();
-  const savedUser=sessionStorage.getItem('ngpUser');
-  if(savedUser&&PIN_CONFIG[savedUser]){
+  const savedUser = sessionStorage.getItem('ngpUser');
+  if (savedUser && PIN_CONFIG[savedUser]) {
     loginSuccess(savedUser);
   }
   await fetchHolidays(currentYear);
