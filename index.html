@@ -4,19 +4,14 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=2.0"/>
   <title>NGP 포장전자 근무달력</title>
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Malgun Gothic','Segoe UI',sans-serif;background:#f0f4f8;color:#2d3748;}
     header{background:linear-gradient(135deg,#2b6cb0,#2c7a7b);color:#fff;padding:18px 24px;text-align:center;}
     header h1{font-size:1.4rem;}
     header p{font-size:0.85rem;opacity:.85;margin-top:4px;}
-
-    /* ── PIN 로그인 화면 ── */
     .pin-overlay{display:flex;position:fixed;inset:0;
       background:linear-gradient(135deg,#2b6cb0,#2c7a7b);
       z-index:999;align-items:center;justify-content:center;}
@@ -53,27 +48,20 @@
       cursor:pointer;font-size:.88rem;color:#718096;
       font-weight:600;transition:all .15s;}
     .guest-btn:hover{border-color:#a0aec0;background:#edf2f7;}
-
-    /* ── 로그인 상태 바 ── */
     .user-bar{background:#2c5282;color:#fff;padding:8px 20px;
       display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
     .user-bar.view-only{background:#4a5568;}
     .logout-btn{padding:4px 12px;background:rgba(255,255,255,.2);
       border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:.78rem;}
     .logout-btn:hover{background:rgba(255,255,255,.35);}
-
-    /* ── 수정 잠금 토스트 ── */
     .edit-locked{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
       background:#2d3748;color:#fff;padding:10px 24px;border-radius:20px;
       font-size:.82rem;z-index:500;display:none;box-shadow:0 4px 12px rgba(0,0,0,.2);}
     .edit-locked.show{display:block;}
-
-    /* ── 동기화 상태 ── */
     .sync-status{text-align:center;padding:5px;font-size:.75rem;
       background:#f0fff4;color:#276749;border-bottom:1px solid #c6f6d5;}
     .sync-status.syncing{background:#ebf8ff;color:#2b6cb0;border-color:#bee3f8;}
     .sync-status.error{background:#fff5f5;color:#e53e3e;border-color:#fed7d7;}
-
     .member-config{background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 24px;
       display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;}
     .member-config label{font-size:.82rem;font-weight:600;}
@@ -130,6 +118,11 @@
     .badge-edu   {background:#c6f6d5;color:#22543d;border:1px solid #9ae6b4;}
     .badge-special{background:#e2e8f0;color:#4a5568;}
     .badge-jongju{background:#bee3f8;color:#2c5282;border:1px solid #90cdf4;font-weight:700;}
+    /* ★ 새 휴가 배지 */
+    .badge-timeleave{background:#fbd38d;color:#7b341e;}
+    .badge-family  {background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;}
+    .badge-fitness {background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;}
+    .badge-groupoff{background:#ffebee;color:#b71c1c;border:1px solid #ef9a9a;}
     .event-area .badge{opacity:.75;font-size:.67rem;}
     .memo-icon{position:absolute;bottom:4px;right:5px;font-size:.72rem;color:#718096;cursor:pointer;z-index:10;}
     .memo-tooltip{display:none;position:fixed;background:#2d3748;color:#fff;
@@ -213,6 +206,15 @@
     .jongju-member-notice{background:#fff;border:1px solid #90cdf4;border-radius:8px;
       padding:8px 12px;font-size:.8rem;color:#2c5282;margin-top:10px;display:none;}
     .jongju-member-notice.show{display:block;}
+    /* ★ 근무 시간대 설정 */
+    .shift-time-section{background:#f7fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:14px;}
+    .shift-time-row{display:flex;align-items:center;gap:8px;padding:6px;border-radius:8px;margin-bottom:6px;}
+    .shift-time-row.am-row{background:#ebf8ff;}
+    .shift-time-row.pm-row{background:#f0fff4;}
+    .shift-time-row.night-row{background:#faf5ff;}
+    .shift-time-label{font-size:.82rem;font-weight:700;min-width:36px;}
+    .shift-time-input{flex:1;padding:5px;border-radius:6px;font-size:.82rem;text-align:center;}
+    .shift-time-reset{padding:3px 8px;border:none;border-radius:6px;cursor:pointer;font-size:.72rem;}
     @media print{
       .controls,.nav button,.member-config,.legend,.modal-overlay,
       .holiday-status,.user-bar,.sync-status,.pin-overlay,.edit-locked{display:none!important;}
@@ -224,7 +226,6 @@
 </head>
 <body>
 
-<!-- ★ PIN 로그인 화면 -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
     <h2>🔐 NGP 포장전자 근무달력</h2>
@@ -255,7 +256,6 @@
       <div class="pin-error" id="pinError"></div>
     </div>
     <div class="pin-divider"></div>
-    <!-- ★ 게스트 열람 버튼 -->
     <button class="guest-btn" onclick="enterViewOnly()">
       👁️ 게스트로 열람만 하기
       <div style="font-size:.75rem;font-weight:400;margin-top:2px;color:#a0aec0;">
@@ -270,19 +270,14 @@
   <p>🔘 휴무 · ⭐ 특근 · ✅ 정상근무 | 🔵 종주 비정기 투입 | 실시간 동기화</p>
 </header>
 
-<!-- 로그인 상태 바 -->
 <div class="user-bar" id="userBar">
   <span id="userBarText">🔐 로그인 중...</span>
   <button class="logout-btn" onclick="logout()">🔒 로그아웃</button>
 </div>
-
-<!-- 실시간 동기화 상태 -->
 <div class="sync-status" id="syncStatus">🔄 연결 중...</div>
-
 <div class="holiday-status" id="holidayStatus">🔄 공휴일 정보 로딩 중...</div>
 
 <div class="member-config">
-  <!-- ★ 선임팀장순: 누리 → 건후 → 승윤 -->
   <span><label>팀원 A </label><input id="nameA" value="누리" maxlength="6"></span>
   <span><label>팀원 B </label><input id="nameB" value="건후" maxlength="6"></span>
   <span><label>팀원 C </label><input id="nameC" value="승윤" maxlength="6"></span>
@@ -327,12 +322,15 @@
 <div class="legend">
   <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div> 휴무</div>
   <div class="legend-item"><div class="legend-box" style="background:#fffde7;border-color:#f6e05e;"></div> 특근</div>
-  <div class="legend-item"><div class="legend-box" style="background:#bee3f8;border-color:#90cdf4;"></div> 오전</div>
-  <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div> 오후</div>
-  <div class="legend-item"><div class="legend-box" style="background:#e9d8fd;border-color:#d6bcfa;"></div> 야간</div>
-  <div class="legend-item"><div class="legend-box" style="background:#fefcbf;border-color:#f6e05e;"></div> 연장</div>
-  <div class="legend-item"><div class="legend-box" style="background:#fed7d7;border-color:#feb2b2;"></div> 연차</div>
-  <div class="legend-item"><div class="legend-box" style="background:#fbd38d;border-color:#f6ad55;"></div> 반차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#bee3f8;"></div> 오전</div>
+  <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;"></div> 오후</div>
+  <div class="legend-item"><div class="legend-box" style="background:#e9d8fd;"></div> 야간</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fefcbf;"></div> 연장</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fed7d7;"></div> 연차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fbd38d;"></div> 반차/시간차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fce4ec;"></div> 가족사랑</div>
+  <div class="legend-item"><div class="legend-box" style="background:#e8f5e9;"></div> 체력단련</div>
+  <div class="legend-item"><div class="legend-box" style="background:#ffebee;"></div> 단체연차</div>
   <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div> 교육</div>
   <div class="legend-item"><div class="legend-box" style="background:#bee3f8;border-color:#90cdf4;"></div> 종주</div>
   <div class="legend-item">📌 메모(hover/터치)</div>
@@ -355,6 +353,36 @@
       </div>
     </div>
     <div class="edit-section" id="editSection">
+
+      <!-- ★ 근무 시간대 설정 -->
+      <div class="shift-time-section">
+        <h4 style="font-size:.82rem;font-weight:700;color:#2b6cb0;margin-bottom:8px;">
+          🕐 근무 시간대
+          <span style="font-size:.72rem;color:#718096;font-weight:400;"> (기본: 오전07~15 / 오후15~23 / 야간23~07)</span>
+        </h4>
+        <div class="shift-time-row am-row">
+          <span class="shift-time-label" style="color:#2a69ac;">오전</span>
+          <input class="shift-time-input" id="timeAm" type="text" placeholder="07:00~15:00"
+            style="border:1px solid #bee3f8;">
+          <button class="shift-time-reset" onclick="resetTime('am')"
+            style="background:#bee3f8;color:#2a69ac;">초기화</button>
+        </div>
+        <div class="shift-time-row pm-row">
+          <span class="shift-time-label" style="color:#276749;">오후</span>
+          <input class="shift-time-input" id="timePm" type="text" placeholder="15:00~23:00"
+            style="border:1px solid #c6f6d5;">
+          <button class="shift-time-reset" onclick="resetTime('pm')"
+            style="background:#c6f6d5;color:#276749;">초기화</button>
+        </div>
+        <div class="shift-time-row night-row">
+          <span class="shift-time-label" style="color:#553c9a;">야간</span>
+          <input class="shift-time-input" id="timeNight" type="text" placeholder="23:00~07:00"
+            style="border:1px solid #e9d8fd;">
+          <button class="shift-time-reset" onclick="resetTime('night')"
+            style="background:#e9d8fd;color:#553c9a;">초기화</button>
+        </div>
+      </div>
+
       <div class="modal-section">
         <h4>🏖️ 연차 빠른 선택
           <span style="font-size:.75rem;color:#718096;font-weight:400;">(선택 시 나머지 2명 +4h 자동)</span>
@@ -408,14 +436,11 @@
   </div>
 </div>
 
-<!-- 수정 잠금 토스트 -->
-<div class="edit-locked" id="editLocked">
-  🔒 로그인 후 수정 가능합니다
-</div>
+<div class="edit-locked" id="editLocked">🔒 로그인 후 수정 가능합니다</div>
 
 <script>
 // ══════════════════════════════════════════════
-//  ★ Firebase 설정 - 본인 설정값으로 교체!
+//  Firebase 설정
 // ══════════════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyCFPFlJz-0uwHyvM9-suzF3OSEzxceXLaA",
@@ -430,17 +455,14 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ══════════════════════════════════════════════
-//  ★ PIN 설정 - 선임팀장순 (누리→건후→승윤→종주)
-//  원하는 4자리 번호로 변경하세요!
+//  PIN 설정
 // ══════════════════════════════════════════════
 const PIN_CONFIG = {
-  '누리': '6919',   // ← 원하는 PIN으로 변경
-  '건후': '2263',   // ← 원하는 PIN으로 변경
-  '승윤': '0263',   // ← 원하는 PIN으로 변경
-  '종주': '9294',   // ← 원하는 PIN으로 변경
+  '누리': '6919',
+  '건후': '2263',
+  '승윤': '0263',
+  '종주': '9294',
 };
-
-// ★ 4명 모두 수정 권한
 const EDIT_MEMBERS = new Set(['누리', '건후', '승윤', '종주']);
 
 // ══════════════════════════════════════════════
@@ -448,8 +470,17 @@ const EDIT_MEMBERS = new Set(['누리', '건후', '승윤', '종주']);
 // ══════════════════════════════════════════════
 const API_KEY = 'c85d2288a6dcdf17c9027f3b5ff271300b972044a6036f5ec99ba42d65acbe8d';
 
+// ══════════════════════════════════════════════
+//  근무 시간대 기본값
+// ══════════════════════════════════════════════
+const DEFAULT_SHIFT_TIMES = {
+  am:    '07:00~15:00',
+  pm:    '15:00~23:00',
+  night: '23:00~07:00',
+};
+
 // ──────────────────────────────────────────────
-//  PIN 로그인 상태
+//  PIN 로그인
 // ──────────────────────────────────────────────
 let currentUser    = null;
 let isViewOnly     = false;
@@ -467,10 +498,8 @@ function initPinScreen(){
     container.appendChild(btn);
   });
 }
-
 function selectPinMember(name){
-  selectedMember = name;
-  pinValue = '';
+  selectedMember = name; pinValue = '';
   document.querySelectorAll('.pin-member-btn').forEach(btn => {
     btn.classList.toggle('selected', btn.textContent.includes(name));
   });
@@ -479,11 +508,9 @@ function selectPinMember(name){
   document.getElementById('pinError').textContent = '';
   updatePinDots();
 }
-
 function pinInput(num){
   if(pinValue.length >= 4) return;
-  pinValue += num;
-  updatePinDots();
+  pinValue += num; updatePinDots();
   if(pinValue.length === 4) checkPin();
 }
 function pinBack(){ pinValue = pinValue.slice(0,-1); updatePinDots(); }
@@ -492,7 +519,6 @@ function updatePinDots(){
   for(let i=0;i<4;i++)
     document.getElementById(`dot${i}`).classList.toggle('filled', i < pinValue.length);
 }
-
 function checkPin(){
   if(pinValue === PIN_CONFIG[selectedMember]){
     loginSuccess(selectedMember);
@@ -502,33 +528,23 @@ function checkPin(){
     setTimeout(()=>updatePinDots(), 100);
   }
 }
-
 function loginSuccess(name){
-  currentUser = name;
-  isViewOnly  = false;
+  currentUser = name; isViewOnly = false;
   document.getElementById('pinOverlay').classList.add('hidden');
   const bar = document.getElementById('userBar');
   bar.className = 'user-bar';
-  document.getElementById('userBarText').textContent =
-    `✅ ${name}님 로그인 중 | 근무 수정 가능`;
+  document.getElementById('userBarText').textContent = `✅ ${name}님 로그인 중 | 근무 수정 가능`;
   sessionStorage.setItem('ngpUser', name);
 }
-
 function enterViewOnly(){
-  currentUser = null;
-  isViewOnly  = true;
+  currentUser = null; isViewOnly = true;
   document.getElementById('pinOverlay').classList.add('hidden');
   const bar = document.getElementById('userBar');
   bar.className = 'user-bar view-only';
-  document.getElementById('userBarText').textContent =
-    '👁️ 게스트 열람 모드 | 수정 불가 (로그아웃 후 로그인 가능)';
+  document.getElementById('userBarText').textContent = '👁️ 게스트 열람 모드 | 수정 불가';
 }
-
 function logout(){
-  currentUser = null;
-  isViewOnly  = false;
-  pinValue    = '';
-  selectedMember = null;
+  currentUser = null; isViewOnly = false; pinValue = ''; selectedMember = null;
   sessionStorage.removeItem('ngpUser');
   document.getElementById('pinInputWrap').classList.remove('show');
   document.querySelectorAll('.pin-member-btn').forEach(b=>b.classList.remove('selected'));
@@ -547,7 +563,6 @@ const HOLIDAY_FALLBACK = {
   2029:{'2029-01-01':'신정','2029-01-25':'설날 전날','2029-01-26':'설날','2029-01-27':'설날 다음날','2029-01-28':'대체공휴일','2029-03-01':'삼일절','2029-05-05':'어린이날','2029-05-20':'부처님 오신 날','2029-06-06':'현충일','2029-08-15':'광복절','2029-10-01':'추석 전날','2029-10-02':'추석','2029-10-03':'추석/개천절','2029-10-04':'대체공휴일','2029-10-09':'한글날','2029-12-25':'크리스마스'},
   2030:{'2030-01-01':'신정','2030-02-11':'설날 전날','2030-02-12':'설날','2030-02-13':'설날 다음날','2030-03-01':'삼일절','2030-05-05':'어린이날','2030-05-09':'부처님 오신 날','2030-06-06':'현충일','2030-08-15':'광복절','2030-09-20':'추석 전날','2030-09-21':'추석','2030-09-22':'추석 다음날','2030-09-23':'대체공휴일','2030-10-03':'개천절','2030-10-09':'한글날','2030-12-25':'크리스마스'},
 };
-
 async function fetchHolidays(year){
   if(holidayCache[year]) return holidayCache[year];
   const statusEl=document.getElementById('holidayStatus');
@@ -587,7 +602,6 @@ async function fetchHolidays(year){
     return holidayCache[year];
   }
 }
-
 function getHoliday(key){
   const year=parseInt(key.substring(0,4));
   return (holidayCache[year]||HOLIDAY_FALLBACK[year]||{})[key];
@@ -597,27 +611,33 @@ function getHoliday(key){
 //  전역 상태
 // ──────────────────────────────────────────────
 let currentYear=2027, currentMonth=0;
-let members=['누리','건후','승윤'];  // ★ 선임팀장순
+let members=['누리','건후','승윤'];
 let baseAmIndex=2;
 let overrides={};
 let modalKey=null, currentDayType='normal', currentAutoShift=null;
 
-const EVENT_TYPES=new Set(['off','half','edu','earlyout','special','none']);
+// ★ 새 휴가 종류 포함
+const EVENT_TYPES=new Set(['off','half','timeleave','family','fitness','groupoff','edu','earlyout','special','none']);
+
 const SHIFT_TYPES=[
-  {value:'auto',     label:'(자동)'},
-  {value:'am',       label:'오전'},
-  {value:'pm',       label:'오후'},
-  {value:'night',    label:'야간'},
-  {value:'off',      label:'연차/휴가'},
-  {value:'half',     label:'반차 (시간 입력 가능)'},
-  {value:'edu',      label:'교육'},
-  {value:'earlyout', label:'조기출근'},
-  {value:'special',  label:'설비/기타'},
-  {value:'none',     label:'근무없음'},
+  {value:'auto',      label:'(자동)'},
+  {value:'am',        label:'오전'},
+  {value:'pm',        label:'오후'},
+  {value:'night',     label:'야간'},
+  {value:'off',       label:'연차'},
+  {value:'half',      label:'반차 (시간 입력)'},
+  {value:'timeleave', label:'시간차 (시간 입력)'},
+  {value:'family',    label:'가족사랑'},
+  {value:'fitness',   label:'체력단련'},
+  {value:'groupoff',  label:'단체연차'},
+  {value:'edu',       label:'교육'},
+  {value:'earlyout',  label:'조기출근'},
+  {value:'special',   label:'설비/기타'},
+  {value:'none',      label:'근무없음'},
 ];
 
 // ──────────────────────────────────────────────
-//  ★ Firebase 실시간 동기화
+//  Firebase 실시간 동기화
 // ──────────────────────────────────────────────
 function initFirebase(){
   const syncEl=document.getElementById('syncStatus');
@@ -644,7 +664,6 @@ function initFirebase(){
     renderCalendar();
   });
 }
-
 function saveToFirebase(){
   const syncEl=document.getElementById('syncStatus');
   syncEl.textContent='🔄 저장 중...'; syncEl.className='sync-status syncing';
@@ -668,30 +687,64 @@ function getAutoShift(date){
   const amIdx=((baseAmIndex+weekNum)%3+3)%3;
   return{am:amIdx,pm:(amIdx+1)%3,night:(amIdx+2)%3};
 }
-function toKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function toKey(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function getDefaultDayType(date){
   const dow=date.getDay(); const key=toKey(date);
   if(dow===0||dow===6||getHoliday(key)) return 'off';
   return 'normal';
 }
+
+// ★ 새 휴가 종류 배지 포함
 function badgeClass(type){
-  return{'am':'badge-am','pm':'badge-pm','night':'badge-night','off':'badge-off',
-    'half':'badge-half','edu':'badge-edu','earlyout':'badge-half',
-    'special':'badge-special','none':'badge-special'}[type]||'badge-special';
+  return{
+    'am'       :'badge-am',
+    'pm'       :'badge-pm',
+    'night'    :'badge-night',
+    'off'      :'badge-off',
+    'half'     :'badge-half',
+    'timeleave':'badge-timeleave',
+    'family'   :'badge-family',
+    'fitness'  :'badge-fitness',
+    'groupoff' :'badge-groupoff',
+    'edu'      :'badge-edu',
+    'earlyout' :'badge-half',
+    'special'  :'badge-special',
+    'none'     :'badge-special'
+  }[type]||'badge-special';
 }
+
+// ★ 새 휴가 종류 라벨 + 시간차 시간 표시
 function shiftLabel(type,ext,halfTime,name){
-  const L={'am':'오전','pm':'오후','night':'야간','off':'연차','half':'반차',
-    'edu':'교육','earlyout':'조출','special':'특수','none':'-'};
+  const L={
+    'am'       :'오전',
+    'pm'       :'오후',
+    'night'    :'야간',
+    'off'      :'연차',
+    'half'     :'반차',
+    'timeleave':'시간차',
+    'family'   :'가족사랑',
+    'fitness'  :'체력단련',
+    'groupoff' :'단체연차',
+    'edu'      :'교육',
+    'earlyout' :'조출',
+    'special'  :'특수',
+    'none'     :'-'
+  };
   const ts=L[type]||type;
   if(EVENT_TYPES.has(type)){
     let s=`${ts} ${name}`;
-    if(type==='half'&&halfTime&&halfTime!=='0'&&halfTime!=='') s+=` ${halfTime}h`;
+    // ★ 반차/시간차 시간 표시
+    if((type==='half'||type==='timeleave')&&halfTime&&halfTime!=='0'&&halfTime!=='')
+      s+=` ${halfTime}h`;
     return s;
   }
   let s=`${ts} ${name}`;
   if(ext&&ext!=='0'&&ext!=='') s+=` +${ext}h`;
   return s;
 }
+
 function renderShifts(container,sd){
   const wi=sd.filter(s=>!EVENT_TYPES.has(s.type)&&s.type!=='auto'&&s.type!=='none');
   const ei=sd.filter(s=>EVENT_TYPES.has(s.type)&&s.type!=='none');
@@ -710,12 +763,14 @@ function renderShifts(container,sd){
     const ea=document.createElement('div');ea.className='event-area';
     ei.forEach(s=>{
       const row=document.createElement('div');row.className='shift-row';
-      const b=document.createElement('span');b.className=`badge ${badgeClass(s.type)}`;
+      const b=document.createElement('span');
+      b.className=`badge ${badgeClass(s.type)}`;
       b.textContent=shiftLabel(s.type,s.ext,s.halfTime,s.name);
       row.appendChild(b);ea.appendChild(row);
     });container.appendChild(ea);
   }
 }
+
 function renderJongju(container,jd){
   if(!jd||!jd.active) return;
   const row=document.createElement('div');row.className='shift-row';
@@ -725,6 +780,7 @@ function renderJongju(container,jd){
   if(jd.hour&&jd.hour!=='0'&&jd.hour!=='') text+=` ${jd.hour}h`;
   b.textContent=text;row.appendChild(b);container.appendChild(row);
 }
+
 function renderMemo(container,memo){
   if(!memo) return;
   const icon=document.createElement('div');
@@ -754,6 +810,21 @@ function renderMemo(container,memo){
 document.addEventListener('touchstart',()=>{
   const t=document.getElementById('globalMemoTooltip');if(t) t.style.display='none';
 });
+
+// ★ 달력 셀에 시간대 표시
+function renderShiftTime(td, shiftTimes){
+  if(!shiftTimes) return;
+  const isDefault =
+    shiftTimes.am    === DEFAULT_SHIFT_TIMES.am &&
+    shiftTimes.pm    === DEFAULT_SHIFT_TIMES.pm &&
+    shiftTimes.night === DEFAULT_SHIFT_TIMES.night;
+  if(isDefault) return; // 기본값이면 표시 안 함
+  const div=document.createElement('div');
+  div.style.cssText='font-size:.6rem;color:#718096;margin-top:2px;line-height:1.3;';
+  div.textContent=`🕐 오전${shiftTimes.am} 오후${shiftTimes.pm} 야간${shiftTimes.night}`;
+  td.appendChild(div);
+}
+
 function renderCellContent(td,dayType,ov,auto){
   const hj=ov&&ov.jongju&&ov.jongju.active;
   const hm=ov&&ov.shifts;
@@ -779,6 +850,8 @@ function renderCellContent(td,dayType,ov,auto){
     if(sd.length>0) renderShifts(td,sd);
   }
   if(hj) renderJongju(td,ov.jongju);
+  // ★ 시간대 표시
+  if(ov&&ov.shiftTimes) renderShiftTime(td, ov.shiftTimes);
 }
 
 // ──────────────────────────────────────────────
@@ -822,7 +895,6 @@ function renderCalendar(){
       if(ov&&ov.memo) renderMemo(td,ov.memo);
       if(isCurrent){
         td.addEventListener('click',()=>{
-          // ★ 게스트는 수정 불가
           if(isViewOnly||!currentUser){
             const locked=document.getElementById('editLocked');
             locked.classList.add('show');
@@ -877,6 +949,13 @@ function toggleJongju(){
   document.getElementById('jongjuDetail').classList.toggle('show',c);
   document.getElementById('jongjuMemberNotice').classList.toggle('show',c&&currentDayType==='off');
 }
+
+// ★ 시간대 초기화
+function resetTime(type){
+  const ids={'am':'timeAm','pm':'timePm','night':'timeNight'};
+  document.getElementById(ids[type]).value=DEFAULT_SHIFT_TIMES[type];
+}
+
 function applyLeaveAuto(li,autoShift){
   members.forEach((_,mi)=>{
     const sel=document.getElementById(`sel_${mi}`);
@@ -884,8 +963,10 @@ function applyLeaveAuto(li,autoShift){
     const row=document.getElementById(`mrow_${mi}`);
     const hw=document.getElementById(`halfwrap_${mi}`);
     if(li===-1){sel.value='auto';ei.value='';if(hw)hw.classList.remove('show');row.classList.remove('is-off','is-ext');return;}
-    if(mi===li){sel.value='off';ei.value='';if(hw)hw.classList.remove('show');row.classList.add('is-off');row.classList.remove('is-ext');}
-    else{
+    if(mi===li){
+      ei.value='';if(hw)hw.classList.remove('show');
+      row.classList.add('is-off');row.classList.remove('is-ext');
+    }else{
       let at='am';if(autoShift.pm===mi)at='pm';else if(autoShift.night===mi)at='night';
       sel.value=at;ei.value='4';if(hw)hw.classList.remove('show');
       row.classList.add('is-ext');row.classList.remove('is-off');
@@ -894,10 +975,11 @@ function applyLeaveAuto(li,autoShift){
   const notice=document.getElementById('leaveNotice');
   if(li>=0){
     const others=members.filter((_,i)=>i!==li);
-    notice.textContent=`✅ ${members[li]} 연차 → ${others.join(', ')} 자동 +4h 적용됨`;
+    notice.textContent=`✅ ${members[li]} 이벤트 → ${others.join(', ')} 자동 +4h 적용됨`;
     notice.classList.add('show');
   }else{notice.classList.remove('show');}
 }
+
 function openModal(key,date){
   modalKey=key;currentAutoShift=getAutoShift(date);
   const existing=overrides[key];
@@ -905,6 +987,13 @@ function openModal(key,date){
   document.getElementById('modalTitle').textContent=
     `📅 ${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일 근무 편집`;
   selectDayType(initType);
+
+  // ★ 시간대 초기화
+  const existingTimes=existing?existing.shiftTimes||{}:{};
+  document.getElementById('timeAm').value=existingTimes.am||DEFAULT_SHIFT_TIMES.am;
+  document.getElementById('timePm').value=existingTimes.pm||DEFAULT_SHIFT_TIMES.pm;
+  document.getElementById('timeNight').value=existingTimes.night||DEFAULT_SHIFT_TIMES.night;
+
   const lq=document.getElementById('leaveQuick');lq.innerHTML='';
   const nb=document.createElement('button');nb.className='leave-btn none-active';nb.textContent='✅ 정상근무';
   nb.dataset.idx='-1';nb.onclick=()=>setLeaveBtn(-1,currentAutoShift);lq.appendChild(nb);
@@ -912,11 +1001,14 @@ function openModal(key,date){
     const btn=document.createElement('button');btn.className='leave-btn';btn.textContent=`🏖️ ${name} 연차`;
     btn.dataset.idx=mi;btn.onclick=()=>setLeaveBtn(mi,currentAutoShift);lq.appendChild(btn);
   });
+
   const container=document.getElementById('memberRows');container.innerHTML='';
   members.forEach((name,mi)=>{
     let at='am';if(currentAutoShift.pm===mi)at='pm';else if(currentAutoShift.night===mi)at='night';
     const saved=existing?existing.shifts?.[mi]:null;
-    const curType=saved?saved.type:'auto';const curExt=saved?saved.ext:'';const curHT=saved?saved.halfTime||'':'';
+    const curType=saved?saved.type:'auto';
+    const curExt=saved?saved.ext:'';
+    const curHT=saved?saved.halfTime||'':'';
     const row=document.createElement('div');row.className='member-row';row.id=`mrow_${mi}`;
     const ns=document.createElement('span');ns.className='mname';ns.textContent=name;row.appendChild(ns);
     const sel=document.createElement('select');sel.id=`sel_${mi}`;
@@ -926,7 +1018,9 @@ function openModal(key,date){
       if(opt.value===curType)o.selected=true;sel.appendChild(o);
     });
     sel.onchange=()=>{
-      document.getElementById(`halfwrap_${mi}`).classList.toggle('show',sel.value==='half');
+      // ★ 반차 또는 시간차 선택 시 시간 입력란 표시
+      const hw=document.getElementById(`halfwrap_${mi}`);
+      hw.classList.toggle('show',sel.value==='half'||sel.value==='timeleave');
       syncLeaveButtons(currentAutoShift);
     };
     row.appendChild(sel);
@@ -936,31 +1030,34 @@ function openModal(key,date){
     ei.id=`ext_${mi}`;ei.value=curExt||'';ei.placeholder='0';
     const hs=document.createElement('span');hs.textContent='h';
     ew.appendChild(ps);ew.appendChild(ei);ew.appendChild(hs);row.appendChild(ew);
+    // ★ 반차/시간차 시간 입력란
     const hw=document.createElement('div');hw.className='half-time-wrap';hw.id=`halfwrap_${mi}`;
-    if(curType==='half')hw.classList.add('show');
-    const hl=document.createElement('span');hl.textContent='반차';
+    if(curType==='half'||curType==='timeleave') hw.classList.add('show');
+    const hl=document.createElement('span');hl.textContent=curType==='timeleave'?'시간차':'반차';
     const hi=document.createElement('input');hi.type='number';hi.min='0.5';hi.max='12';hi.step='0.5';
     hi.id=`half_${mi}`;hi.value=curHT||'';hi.placeholder='시간';
     const hh=document.createElement('span');hh.textContent='h';
     hw.appendChild(hl);hw.appendChild(hi);hw.appendChild(hh);row.appendChild(hw);
     container.appendChild(row);
     if(saved){
-      if(saved.type==='off')row.classList.add('is-off');
-      else if(saved.ext&&saved.ext!=='0'&&saved.ext!=='')row.classList.add('is-ext');
+      if(saved.type==='off'||EVENT_TYPES.has(saved.type)) row.classList.add('is-off');
+      else if(saved.ext&&saved.ext!=='0'&&saved.ext!=='') row.classList.add('is-ext');
     }
   });
+
   document.getElementById('memoInput').value=existing?existing.memo||'':'';
   document.getElementById('leaveNotice').classList.remove('show');
   if(existing&&existing.shifts){
-    const oi=existing.shifts.findIndex(s=>s&&s.type==='off');
+    const oi=existing.shifts.findIndex(s=>s&&EVENT_TYPES.has(s.type));
     highlightLeaveBtn(oi>=0?oi:-1);
     if(oi>=0){
       const others=members.filter((_,i)=>i!==oi);
       const n=document.getElementById('leaveNotice');
-      n.textContent=`✅ ${members[oi]} 연차 → ${others.join(', ')} +4h 적용됨`;
+      n.textContent=`✅ ${members[oi]} 이벤트 → ${others.join(', ')} +4h 적용됨`;
       n.classList.add('show');
     }
   }else{highlightLeaveBtn(-1);}
+
   const jd=existing?existing.jongju:null;const jt=document.getElementById('jongjuToggle');
   jt.checked=!!(jd&&jd.active);
   document.getElementById('jongjuToggleLabel').textContent=jt.checked?'✅ 종주 투입':'투입 없음';
@@ -970,6 +1067,7 @@ function openModal(key,date){
   document.getElementById('jongjuMemberNotice').classList.toggle('show',jt.checked&&initType==='off');
   document.getElementById('modalOverlay').classList.add('open');
 }
+
 function setLeaveBtn(li,auto){highlightLeaveBtn(li);applyLeaveAuto(li,auto);}
 function highlightLeaveBtn(li){
   document.querySelectorAll('.leave-btn').forEach(btn=>{
@@ -978,65 +1076,73 @@ function highlightLeaveBtn(li){
   });
 }
 function syncLeaveButtons(auto){
-  const oi=members.findIndex((_,mi)=>document.getElementById(`sel_${mi}`)?.value==='off');
+  const oi=members.findIndex((_,mi)=>EVENT_TYPES.has(document.getElementById(`sel_${mi}`)?.value));
   highlightLeaveBtn(oi);
   const notice=document.getElementById('leaveNotice');
-  if(oi>=0){const others=members.filter((_,i)=>i!==oi);notice.textContent=`✅ ${members[oi]} 연차 → ${others.join(', ')} +4h 적용됨`;notice.classList.add('show');}
-  else{notice.classList.remove('show');}
+  if(oi>=0){
+    const others=members.filter((_,i)=>i!==oi);
+    notice.textContent=`✅ ${members[oi]} 이벤트 → ${others.join(', ')} +4h 적용됨`;
+    notice.classList.add('show');
+  }else{notice.classList.remove('show');}
 }
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');modalKey=null;}
+
 function saveDay(){
-const ja=document.getElementById('jongjuToggle').checked;
-  const jd={
-    active:ja,
-    type:document.getElementById('jongjuType').value,
-    hour:document.getElementById('jongjuHour').value||''
+  const ja=document.getElementById('jongjuToggle').checked;
+  const jd={active:ja,type:document.getElementById('jongjuType').value,hour:document.getElementById('jongjuHour').value||''};
+
+  // ★ 시간대 저장
+  const shiftTimes={
+    am:    document.getElementById('timeAm').value    ||DEFAULT_SHIFT_TIMES.am,
+    pm:    document.getElementById('timePm').value    ||DEFAULT_SHIFT_TIMES.pm,
+    night: document.getElementById('timeNight').value ||DEFAULT_SHIFT_TIMES.night,
   };
 
   if(currentDayType==='off'){
     const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
-    if(dt==='off'&&!ja){ delete overrides[modalKey]; }
-    else{ overrides[modalKey]={dayType:'off',shifts:null,memo:'',jongju:jd}; }
-  } else {
+    if(dt==='off'&&!ja){delete overrides[modalKey];}
+    else{overrides[modalKey]={dayType:'off',shifts:null,memo:'',jongju:jd,shiftTimes};}
+  }else{
     const shifts=members.map((_,mi)=>({
-      type:document.getElementById(`sel_${mi}`).value,
-      ext:document.getElementById(`ext_${mi}`).value||'',
-      halfTime:document.getElementById(`half_${mi}`)?.value||'',
+      type:     document.getElementById(`sel_${mi}`).value,
+      ext:      document.getElementById(`ext_${mi}`).value||'',
+      halfTime: document.getElementById(`half_${mi}`)?.value||'',
     }));
     const memo=document.getElementById('memoInput').value.trim();
-
     // ★ 이벤트 여부 확인
-    const hasEvent=shifts.some(s=>
-      EVENT_TYPES.has(s.type)&&s.type!=='none'
-    );
+    const hasEvent=shifts.some(s=>EVENT_TYPES.has(s.type)&&s.type!=='none');
     const allAuto=shifts.every(s=>s.type==='auto');
     const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
-
     if(allAuto&&!memo&&currentDayType===dt&&!ja){
       delete overrides[modalKey];
-    } else {
-      // ★ 핵심: 이벤트 있을 때 auto인 나머지는
-      //         실제 근무 타입으로 변환해서 저장!
+    }else{
+      // ★ 이벤트 있을 때 auto인 나머지는 실제 근무 타입으로 변환
       const finalShifts=shifts.map((s,mi)=>{
         if(s.type==='auto'&&hasEvent){
           let autoType='am';
           if(currentAutoShift.pm===mi) autoType='pm';
           else if(currentAutoShift.night===mi) autoType='night';
-          return{type:autoType, ext:s.ext, halfTime:s.halfTime};
+          return{type:autoType,ext:s.ext,halfTime:s.halfTime};
         }
         return s;
       });
-
       overrides[modalKey]={
         dayType:currentDayType,
         shifts:allAuto&&!hasEvent?null:finalShifts,
         memo,
-        jongju:jd
+        jongju:jd,
+        shiftTimes, // ★ 시간대 저장
       };
     }
   }
   closeModal();
-  saveToFirebase(); // ★ Firebase 실시간 저장
+  saveToFirebase();
+}
+
+function resetDay(){
+  delete overrides[modalKey];
+  closeModal();
+  saveToFirebase();
 }
 
 // ──────────────────────────────────────────────
@@ -1044,15 +1150,12 @@ const ja=document.getElementById('jongjuToggle').checked;
 // ──────────────────────────────────────────────
 (async()=>{
   initPinScreen();
-
-  // ★ 세션 유지 (새로고침 시 자동 로그인)
   const savedUser=sessionStorage.getItem('ngpUser');
   if(savedUser&&PIN_CONFIG[savedUser]){
     loginSuccess(savedUser);
   }
-
   await fetchHolidays(currentYear);
-  initFirebase(); // ★ Firebase 실시간 연결
+  initFirebase();
 })();
 </script>
 </body>
