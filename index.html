@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NGP 포장전자 근무달력</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Malgun Gothic','Segoe UI',sans-serif;background:#f0f4f8;color:#2d3748;}
+    header{background:linear-gradient(135deg,#2b6cb0,#2c7a7b);color:#fff;padding:18px 24px;text-align:center;}
+    header h1{font-size:1.4rem;}
+    header p{font-size:0.85rem;opacity:.85;margin-top:4px;}
+
+    /* ── PIN 로그인 화면 ── */
+    .pin-overlay{display:flex;position:fixed;inset:0;
+      background:linear-gradient(135deg,#2b6cb0,#2c7a7b);
+      z-index:999;align-items:center;justify-content:center;}
+    .pin-overlay.hidden{display:none;}
+    .pin-box{background:#fff;border-radius:20px;padding:36px 32px;
+      width:340px;max-width:90vw;text-align:center;
+      box-shadow:0 8px 40px rgba(0,0,0,.3);}
+    .pin-box h2{font-size:1.2rem;color:#2b6cb0;margin-bottom:6px;}
+    .pin-box p{font-size:.85rem;color:#718096;margin-bottom:24px;}
+    .pin-members{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+    .pin-member-btn{padding:13px;border-radius:12px;border:2px solid #e2e8f0;
+      cursor:pointer;font-size:.95rem;font-weight:600;
+      background:#f7fafc;transition:all .15s;color:#2d3748;}
+    .pin-member-btn:hover{border-color:#2b6cb0;background:#ebf8ff;}
+    .pin-member-btn.selected{border-color:#2b6cb0;background:#ebf8ff;color:#2b6cb0;}
+    .pin-input-wrap{display:none;}
+    .pin-input-wrap.show{display:block;}
+    .pin-title{font-size:.9rem;font-weight:600;color:#4a5568;margin-bottom:10px;}
+    .pin-dots{display:flex;justify-content:center;gap:10px;margin-bottom:16px;}
+    .pin-dot{width:16px;height:16px;border-radius:50%;
+      background:#e2e8f0;border:2px solid #cbd5e0;transition:all .2s;}
+    .pin-dot.filled{background:#2b6cb0;border-color:#2b6cb0;}
+    .pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+    .pin-key{padding:14px;border-radius:10px;border:1px solid #e2e8f0;
+      cursor:pointer;font-size:1.1rem;font-weight:600;
+      background:#f7fafc;transition:all .1s;}
+    .pin-key:hover{background:#ebf8ff;border-color:#2b6cb0;}
+    .pin-key:active{transform:scale(.95);}
+    .pin-key.del{background:#fff5f5;color:#e53e3e;}
+    .pin-error{color:#e53e3e;font-size:.82rem;min-height:20px;margin-top:4px;}
+    .pin-divider{border-top:1px solid #e2e8f0;margin:16px 0;}
+    .guest-btn{width:100%;padding:12px;border-radius:10px;
+      border:2px dashed #e2e8f0;background:#f7fafc;
+      cursor:pointer;font-size:.88rem;color:#718096;
+      font-weight:600;transition:all .15s;}
+    .guest-btn:hover{border-color:#a0aec0;background:#edf2f7;}
+
+    /* ── 로그인 상태 바 ── */
+    .user-bar{background:#2c5282;color:#fff;padding:8px 20px;
+      display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
+    .user-bar.view-only{background:#4a5568;}
+    .logout-btn{padding:4px 12px;background:rgba(255,255,255,.2);
+      border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:.78rem;}
+    .logout-btn:hover{background:rgba(255,255,255,.35);}
+
+    /* ── 수정 잠금 토스트 ── */
+    .edit-locked{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+      background:#2d3748;color:#fff;padding:10px 24px;border-radius:20px;
+      font-size:.82rem;z-index:500;display:none;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+    .edit-locked.show{display:block;}
+
+    /* ── 동기화 상태 ── */
+    .sync-status{text-align:center;padding:5px;font-size:.75rem;
+      background:#f0fff4;color:#276749;border-bottom:1px solid #c6f6d5;}
+    .sync-status.syncing{background:#ebf8ff;color:#2b6cb0;border-color:#bee3f8;}
+    .sync-status.error{background:#fff5f5;color:#e53e3e;border-color:#fed7d7;}
+
+    .member-config{background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 24px;
+      display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;}
+    .member-config label{font-size:.82rem;font-weight:600;}
+    .member-config input{width:68px;padding:5px 8px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;}
+    .member-config select{padding:5px 8px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;
+      padding:12px 24px;background:#fff;border-bottom:1px solid #e2e8f0;}
+    .btn{padding:7px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:600;color:#fff;}
+    .btn-blue{background:#2b6cb0;}.btn-blue:hover{background:#2c5282;}
+    .btn-gray{background:#718096;}.btn-gray:hover{background:#4a5568;}
+    .nav{display:flex;align-items:center;justify-content:center;gap:20px;padding:12px;background:#fff;}
+    .nav button{padding:6px 16px;background:#e2e8f0;border:none;border-radius:6px;cursor:pointer;font-size:1rem;}
+    .nav button:hover{background:#cbd5e0;}
+    .nav h2{font-size:1.15rem;min-width:160px;text-align:center;}
+    .calendar-wrap{padding:14px 20px;overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;min-width:720px;background:#fff;
+      border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+    thead th{background:#2b6cb0;color:#fff;padding:10px 0;font-size:.82rem;}
+    thead th:first-child{background:#e53e3e;}
+    thead th:last-child{background:#3182ce;}
+    td{border:1px solid #e2e8f0;vertical-align:top;padding:6px;
+      height:120px;max-height:120px;overflow:visible;
+      font-size:.75rem;width:14.28%;cursor:pointer;transition:background .15s;position:relative;}
+    td:hover{filter:brightness(.97);}
+    td.day-off    {background:#f0f0f0;}
+    td.day-special{background:#fffde7;}
+    td.day-normal {background:#fff;}
+    td.day-off.has-jongju{background:linear-gradient(135deg,#f0f0f0 60%,#ebf8ff 100%);}
+    .date-num{font-weight:700;font-size:.92rem;margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+    .sunday  .date-num{color:#e53e3e;}
+    .saturday .date-num{color:#3182ce;}
+    .other-month{background:#f7fafc !important;}
+    .other-month .date-num{color:#a0aec0;}
+    .today{outline:2px solid #2b6cb0;outline-offset:-2px;}
+    .today .date-num{color:#2b6cb0;}
+    .holiday-label{font-size:.68rem;color:#e53e3e;font-weight:600;margin-bottom:3px;}
+    .modified-mark{font-size:.62rem;color:#e53e3e;margin-left:auto;}
+    .off-label{display:flex;align-items:center;justify-content:center;
+      height:60px;font-size:.9rem;color:#a0aec0;font-weight:700;}
+    .special-tag{display:inline-block;font-size:.68rem;background:#f6e05e;color:#744210;
+      border-radius:4px;padding:1px 6px;font-weight:700;margin-bottom:3px;}
+    .off-jongju-tag{display:inline-block;font-size:.68rem;background:#e2e8f0;color:#4a5568;
+      border-radius:4px;padding:1px 6px;font-weight:700;margin-bottom:3px;}
+    .shift-area-work{margin-bottom:2px;}
+    .event-divider{border:none;border-top:1px dashed #e2e8f0;margin:3px 0;}
+    .shift-row{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:2px;}
+    .badge{border-radius:4px;padding:1px 5px;font-size:.7rem;font-weight:600;white-space:nowrap;}
+    .badge-am    {background:#bee3f8;color:#2a69ac;}
+    .badge-pm    {background:#c6f6d5;color:#276749;}
+    .badge-night {background:#e9d8fd;color:#553c9a;}
+    .badge-ext   {background:#fefcbf;color:#744210;}
+    .badge-off   {background:#fed7d7;color:#9b2c2c;}
+    .badge-half  {background:#fbd38d;color:#7b341e;}
+    .badge-edu   {background:#c6f6d5;color:#22543d;border:1px solid #9ae6b4;}
+    .badge-special{background:#e2e8f0;color:#4a5568;}
+    .badge-jongju{background:#bee3f8;color:#2c5282;border:1px solid #90cdf4;font-weight:700;}
+    .event-area .badge{opacity:.75;font-size:.67rem;}
+    .memo-icon{position:absolute;bottom:4px;right:5px;font-size:.72rem;color:#718096;cursor:pointer;z-index:10;}
+    .memo-tooltip{display:none;position:fixed;background:#2d3748;color:#fff;
+      font-size:.75rem;padding:8px 12px;border-radius:8px;white-space:pre-wrap;
+      word-break:keep-all;max-width:220px;z-index:9999;
+      box-shadow:0 4px 16px rgba(0,0,0,.3);line-height:1.6;pointer-events:none;}
+    .holiday-status{text-align:center;padding:6px;font-size:.78rem;
+      background:#ebf8ff;color:#2b6cb0;border-bottom:1px solid #bee3f8;}
+    .holiday-status.error{background:#fff5f5;color:#e53e3e;}
+    .holiday-status.success{background:#f0fff4;color:#276749;}
+    .legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+      padding:10px 24px;background:#fff;border-top:1px solid #e2e8f0;font-size:.78rem;align-items:center;}
+    .legend-item{display:flex;align-items:center;gap:4px;color:#4a5568;}
+    .legend-box{width:12px;height:12px;border-radius:3px;border:1px solid #e2e8f0;flex-shrink:0;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+      z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:#fff;border-radius:14px;padding:24px;width:460px;max-width:95vw;
+      max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.22);}
+    .modal h3{margin-bottom:14px;font-size:1rem;border-bottom:2px solid #e2e8f0;padding-bottom:8px;}
+    .modal-section{margin-bottom:14px;}
+    .modal-section h4{font-size:.82rem;font-weight:700;color:#2b6cb0;margin-bottom:8px;}
+    .modal-section.memo-section{border-top:2px solid #e2e8f0;padding-top:14px;margin-top:4px;}
+    .day-type-row{display:flex;gap:10px;margin-bottom:4px;}
+    .day-type-btn{flex:1;padding:12px 6px;border-radius:10px;border:2px solid #e2e8f0;
+      cursor:pointer;font-size:.88rem;font-weight:600;background:#fff;text-align:center;transition:all .15s;}
+    .day-type-btn:hover{border-color:#2b6cb0;}
+    .day-type-btn.selected-off    {border-color:#718096;background:#f0f0f0;color:#4a5568;}
+    .day-type-btn.selected-special{border-color:#d69e2e;background:#fffde7;color:#744210;}
+    .day-type-btn.selected-normal {border-color:#2b6cb0;background:#ebf8ff;color:#2b6cb0;}
+    .leave-quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+    .leave-btn{padding:7px 14px;border-radius:20px;border:2px solid #e2e8f0;
+      cursor:pointer;font-size:.82rem;background:#fff;transition:all .15s;}
+    .leave-btn:hover{border-color:#2b6cb0;}
+    .leave-btn.active{border-color:#e53e3e;background:#fed7d7;font-weight:700;color:#9b2c2c;}
+    .leave-btn.none-active{border-color:#2b6cb0;background:#ebf8ff;font-weight:700;}
+    .member-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;
+      padding:8px;background:#f7fafc;border-radius:8px;transition:background .2s;}
+    .member-row.is-off{background:#fff5f5;}
+    .member-row.is-ext{background:#fffff0;}
+    .member-row .mname{font-weight:700;font-size:.85rem;min-width:36px;}
+    .member-row select{flex:1;padding:5px;border:1px solid #cbd5e0;border-radius:6px;font-size:.82rem;}
+    .ext-wrap{display:flex;align-items:center;gap:3px;}
+    .ext-wrap input{width:52px;padding:5px;border:1px solid #cbd5e0;border-radius:6px;font-size:.82rem;text-align:center;}
+    .ext-wrap span{font-size:.78rem;color:#718096;}
+    .half-time-wrap{display:none;align-items:center;gap:3px;margin-left:4px;}
+    .half-time-wrap.show{display:flex;}
+    .half-time-wrap input{width:48px;padding:5px;border:1px solid #fbd38d;border-radius:6px;
+      font-size:.82rem;text-align:center;background:#fffbf0;}
+    .half-time-wrap span{font-size:.78rem;color:#7b341e;}
+    .leave-notice{background:#fffbeb;border:1px solid #f6e05e;border-radius:8px;
+      padding:8px 12px;font-size:.8rem;color:#744210;margin-bottom:10px;display:none;}
+    .leave-notice.show{display:block;}
+    .edit-section{display:none;}
+    .edit-section.show{display:block;}
+    .memo-input{width:100%;padding:7px 10px;border:1px solid #cbd5e0;border-radius:6px;
+      font-size:.85rem;resize:none;}
+    .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+    .modal-btns button{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;}
+    .ok-btn{background:#2b6cb0;color:#fff;}
+    .reset-btn{background:#e53e3e;color:#fff;}
+    .cancel-btn{background:#e2e8f0;color:#2d3748;}
+    .jongju-section{background:#ebf8ff;border:2px solid #90cdf4;border-radius:10px;
+      padding:12px;margin-bottom:16px;}
+    .jongju-section h4{font-size:.82rem;font-weight:700;color:#2c5282;margin-bottom:10px;}
+    .jongju-toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .jongju-toggle{position:relative;width:48px;height:26px;cursor:pointer;}
+    .jongju-toggle input{opacity:0;width:0;height:0;}
+    .jongju-slider{position:absolute;inset:0;background:#cbd5e0;border-radius:13px;transition:.3s;}
+    .jongju-slider:before{content:'';position:absolute;width:20px;height:20px;
+      left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+    .jongju-toggle input:checked + .jongju-slider{background:#2b6cb0;}
+    .jongju-toggle input:checked + .jongju-slider:before{transform:translateX(22px);}
+    .jongju-toggle-label{font-size:.85rem;font-weight:600;color:#2c5282;}
+    .jongju-detail{display:none;}
+    .jongju-detail.show{display:block;}
+    .jongju-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .jongju-row select{padding:6px;border:1px solid #90cdf4;border-radius:6px;font-size:.82rem;background:#fff;}
+    .jongju-row input{width:60px;padding:6px;border:1px solid #90cdf4;border-radius:6px;font-size:.82rem;text-align:center;}
+    .jongju-row span{font-size:.78rem;color:#2c5282;}
+    .jongju-member-notice{background:#fff;border:1px solid #90cdf4;border-radius:8px;
+      padding:8px 12px;font-size:.8rem;color:#2c5282;margin-top:10px;display:none;}
+    .jongju-member-notice.show{display:block;}
+    @media print{
+      .controls,.nav button,.member-config,.legend,.modal-overlay,
+      .holiday-status,.user-bar,.sync-status,.pin-overlay,.edit-locked{display:none!important;}
+      body{background:#fff;}
+      .calendar-wrap{padding:4px;}
+      td{height:90px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ★ PIN 로그인 화면 -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <h2>🔐 NGP 포장전자 근무달력</h2>
+    <p>본인 이름을 선택하고 PIN을 입력하세요</p>
+    <div class="pin-members" id="pinMembers"></div>
+    <div class="pin-input-wrap" id="pinInputWrap">
+      <div class="pin-title" id="pinTitle">PIN 번호를 입력하세요</div>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="dot0"></div>
+        <div class="pin-dot" id="dot1"></div>
+        <div class="pin-dot" id="dot2"></div>
+        <div class="pin-dot" id="dot3"></div>
+      </div>
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="pinInput('1')">1</button>
+        <button class="pin-key" onclick="pinInput('2')">2</button>
+        <button class="pin-key" onclick="pinInput('3')">3</button>
+        <button class="pin-key" onclick="pinInput('4')">4</button>
+        <button class="pin-key" onclick="pinInput('5')">5</button>
+        <button class="pin-key" onclick="pinInput('6')">6</button>
+        <button class="pin-key" onclick="pinInput('7')">7</button>
+        <button class="pin-key" onclick="pinInput('8')">8</button>
+        <button class="pin-key" onclick="pinInput('9')">9</button>
+        <button class="pin-key" onclick="pinBack()">←</button>
+        <button class="pin-key" onclick="pinInput('0')">0</button>
+        <button class="pin-key del" onclick="pinClear()">✕</button>
+      </div>
+      <div class="pin-error" id="pinError"></div>
+    </div>
+    <div class="pin-divider"></div>
+    <!-- ★ 게스트 열람 버튼 -->
+    <button class="guest-btn" onclick="enterViewOnly()">
+      👁️ 게스트로 열람만 하기
+      <div style="font-size:.75rem;font-weight:400;margin-top:2px;color:#a0aec0;">
+        수정 없이 달력 보기만 가능
+      </div>
+    </button>
+  </div>
+</div>
+
+<header>
+  <h1>📅 NGP 포장전자 근무달력</h1>
+  <p>🔘 휴무 · ⭐ 특근 · ✅ 정상근무 | 🔵 종주 비정기 투입 | 실시간 동기화</p>
+</header>
+
+<!-- 로그인 상태 바 -->
+<div class="user-bar" id="userBar">
+  <span id="userBarText">🔐 로그인 중...</span>
+  <button class="logout-btn" onclick="logout()">🔒 로그아웃</button>
+</div>
+
+<!-- 실시간 동기화 상태 -->
+<div class="sync-status" id="syncStatus">🔄 연결 중...</div>
+
+<div class="holiday-status" id="holidayStatus">🔄 공휴일 정보 로딩 중...</div>
+
+<div class="member-config">
+  <!-- ★ 선임팀장순: 누리 → 건후 → 승윤 -->
+  <span><label>팀원 A </label><input id="nameA" value="누리" maxlength="6"></span>
+  <span><label>팀원 B </label><input id="nameB" value="건후" maxlength="6"></span>
+  <span><label>팀원 C </label><input id="nameC" value="승윤" maxlength="6"></span>
+  <span>
+    <label>1월 1주 오전 담당 </label>
+    <select id="firstShift">
+      <option value="0">누리</option>
+      <option value="1">건후</option>
+      <option value="2" selected>승윤</option>
+    </select>
+  </span>
+  <button class="btn btn-blue" onclick="applyConfig()">✅ 적용</button>
+</div>
+
+<div class="controls">
+  <select id="yearSel" onchange="onYearChange()"
+    style="padding:7px 12px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;">
+    <option value="2026">2026년</option>
+    <option value="2027" selected>2027년</option>
+    <option value="2028">2028년</option>
+    <option value="2029">2029년</option>
+    <option value="2030">2030년</option>
+  </select>
+  <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
+</div>
+
+<div class="nav">
+  <button onclick="prevMonth()">◀</button>
+  <h2 id="monthTitle"></h2>
+  <button onclick="nextMonth()">▶</button>
+</div>
+
+<div class="calendar-wrap">
+  <table>
+    <thead>
+      <tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr>
+    </thead>
+    <tbody id="calBody"></tbody>
+  </table>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div> 휴무</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fffde7;border-color:#f6e05e;"></div> 특근</div>
+  <div class="legend-item"><div class="legend-box" style="background:#bee3f8;border-color:#90cdf4;"></div> 오전</div>
+  <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div> 오후</div>
+  <div class="legend-item"><div class="legend-box" style="background:#e9d8fd;border-color:#d6bcfa;"></div> 야간</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fefcbf;border-color:#f6e05e;"></div> 연장</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fed7d7;border-color:#feb2b2;"></div> 연차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fbd38d;border-color:#f6ad55;"></div> 반차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div> 교육</div>
+  <div class="legend-item"><div class="legend-box" style="background:#bee3f8;border-color:#90cdf4;"></div> 종주</div>
+  <div class="legend-item">📌 메모(hover/터치)</div>
+  <div class="legend-item" style="color:#e53e3e;">🔧 수동편집</div>
+</div>
+
+<!-- 편집 모달 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">근무 편집</h3>
+    <div class="modal-section">
+      <h4>📋 근무 형태 선택</h4>
+      <div class="day-type-row">
+        <button class="day-type-btn" id="btnOff"
+          onclick="selectDayType('off')">🔘<br>휴무<br><span style="font-size:.72rem;font-weight:400;">쉬는 날</span></button>
+        <button class="day-type-btn" id="btnSpecial"
+          onclick="selectDayType('special')">⭐<br>특근<br><span style="font-size:.72rem;font-weight:400;">선택적 근무</span></button>
+        <button class="day-type-btn" id="btnNormal"
+          onclick="selectDayType('normal')">✅<br>정상근무<br><span style="font-size:.72rem;font-weight:400;">일반 근무일</span></button>
+      </div>
+    </div>
+    <div class="edit-section" id="editSection">
+      <div class="modal-section">
+        <h4>🏖️ 연차 빠른 선택
+          <span style="font-size:.75rem;color:#718096;font-weight:400;">(선택 시 나머지 2명 +4h 자동)</span>
+        </h4>
+        <div class="leave-quick" id="leaveQuick"></div>
+        <div class="leave-notice" id="leaveNotice"></div>
+      </div>
+      <div class="modal-section">
+        <h4>⚙️ 팀원별 상세 설정</h4>
+        <div id="memberRows"></div>
+      </div>
+      <div class="modal-section memo-section">
+        <h4>📝 메모</h4>
+        <textarea class="memo-input" id="memoInput" rows="2"
+          placeholder="예) 설비점검, 미팅, 교육내용, 특근사유..."></textarea>
+      </div>
+    </div>
+    <div class="jongju-section">
+      <h4>🔵 종주 투입</h4>
+      <div class="jongju-toggle-row">
+        <label class="jongju-toggle">
+          <input type="checkbox" id="jongjuToggle" onchange="toggleJongju()">
+          <span class="jongju-slider"></span>
+        </label>
+        <span class="jongju-toggle-label" id="jongjuToggleLabel">투입 없음</span>
+      </div>
+      <div class="jongju-detail" id="jongjuDetail">
+        <div class="jongju-row">
+          <span>근무유형</span>
+          <select id="jongjuType">
+            <option value="am">오전</option>
+            <option value="pm">오후</option>
+            <option value="night">야간</option>
+            <option value="special">설비/기타</option>
+          </select>
+          <span>시간</span>
+          <input type="number" id="jongjuHour" min="0" max="24" step="0.5" placeholder="0">
+          <span>h</span>
+        </div>
+        <div class="jongju-member-notice" id="jongjuMemberNotice">
+          💡 휴무일 종주 투입 시, 함께 근무하는 팀원이 있다면
+          <b>특근</b> 또는 <b>정상근무</b>를 선택해 주세요!
+        </div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="reset-btn" onclick="resetDay()">🗑️ 초기화</button>
+      <button class="cancel-btn" onclick="closeModal()">취소</button>
+      <button class="ok-btn" onclick="saveDay()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 수정 잠금 토스트 -->
+<div class="edit-locked" id="editLocked">
+  🔒 로그인 후 수정 가능합니다
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  ★ Firebase 설정 - 본인 설정값으로 교체!
+// ══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCFPFlJz-0uwHyvM9-suzF3OSEzxceXLaA",
+  authDomain: "ngp-elec.firebaseapp.com",
+  databaseURL: "https://ngp-elec-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ngp-elec",
+  storageBucket: "ngp-elec.firebasestorage.app",
+  messagingSenderId: "404689332747",
+  appId: "1:404689332747:web:a16e6dd145fa0537d7f50e"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ══════════════════════════════════════════════
+//  ★ PIN 설정 - 선임팀장순 (누리→건후→승윤→종주)
+//  원하는 4자리 번호로 변경하세요!
+// ══════════════════════════════════════════════
+const PIN_CONFIG = {
+  '누리': '6919',   // ← 원하는 PIN으로 변경
+  '건후': '2263',   // ← 원하는 PIN으로 변경
+  '승윤': '0263',   // ← 원하는 PIN으로 변경
+  '종주': '9294',   // ← 원하는 PIN으로 변경
+};
+
+// ★ 4명 모두 수정 권한
+const EDIT_MEMBERS = new Set(['누리', '건후', '승윤', '종주']);
+
+// ══════════════════════════════════════════════
+//  공공데이터 API 키
+// ══════════════════════════════════════════════
+const API_KEY = 'c85d2288a6dcdf17c9027f3b5ff271300b972044a6036f5ec99ba42d65acbe8d';
+
+// ──────────────────────────────────────────────
+//  PIN 로그인 상태
+// ──────────────────────────────────────────────
+let currentUser    = null;
+let isViewOnly     = false;
+let selectedMember = null;
+let pinValue       = '';
+
+function initPinScreen(){
+  const container = document.getElementById('pinMembers');
+  container.innerHTML = '';
+  Object.keys(PIN_CONFIG).forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'pin-member-btn';
+    btn.textContent = `👤 ${name}`;
+    btn.onclick = () => selectPinMember(name);
+    container.appendChild(btn);
+  });
+}
+
+function selectPinMember(name){
+  selectedMember = name;
+  pinValue = '';
+  document.querySelectorAll('.pin-member-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.textContent.includes(name));
+  });
+  document.getElementById('pinInputWrap').classList.add('show');
+  document.getElementById('pinTitle').textContent = `${name}님의 PIN을 입력하세요`;
+  document.getElementById('pinError').textContent = '';
+  updatePinDots();
+}
+
+function pinInput(num){
+  if(pinValue.length >= 4) return;
+  pinValue += num;
+  updatePinDots();
+  if(pinValue.length === 4) checkPin();
+}
+function pinBack(){ pinValue = pinValue.slice(0,-1); updatePinDots(); }
+function pinClear(){ pinValue = ''; updatePinDots(); document.getElementById('pinError').textContent = ''; }
+function updatePinDots(){
+  for(let i=0;i<4;i++)
+    document.getElementById(`dot${i}`).classList.toggle('filled', i < pinValue.length);
+}
+
+function checkPin(){
+  if(pinValue === PIN_CONFIG[selectedMember]){
+    loginSuccess(selectedMember);
+  } else {
+    document.getElementById('pinError').textContent = '❌ PIN이 틀렸습니다. 다시 입력해주세요.';
+    pinValue = '';
+    setTimeout(()=>updatePinDots(), 100);
+  }
+}
+
+function loginSuccess(name){
+  currentUser = name;
+  isViewOnly  = false;
+  document.getElementById('pinOverlay').classList.add('hidden');
+  const bar = document.getElementById('userBar');
+  bar.className = 'user-bar';
+  document.getElementById('userBarText').textContent =
+    `✅ ${name}님 로그인 중 | 근무 수정 가능`;
+  sessionStorage.setItem('ngpUser', name);
+}
+
+function enterViewOnly(){
+  currentUser = null;
+  isViewOnly  = true;
+  document.getElementById('pinOverlay').classList.add('hidden');
+  const bar = document.getElementById('userBar');
+  bar.className = 'user-bar view-only';
+  document.getElementById('userBarText').textContent =
+    '👁️ 게스트 열람 모드 | 수정 불가 (로그아웃 후 로그인 가능)';
+}
+
+function logout(){
+  currentUser = null;
+  isViewOnly  = false;
+  pinValue    = '';
+  selectedMember = null;
+  sessionStorage.removeItem('ngpUser');
+  document.getElementById('pinInputWrap').classList.remove('show');
+  document.querySelectorAll('.pin-member-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('pinError').textContent = '';
+  document.getElementById('pinOverlay').classList.remove('hidden');
+}
+
+// ──────────────────────────────────────────────
+//  공휴일
+// ──────────────────────────────────────────────
+let holidayCache = {};
+const HOLIDAY_FALLBACK = {
+  2026:{'2026-01-01':'신정','2026-02-16':'설날 전날','2026-02-17':'설날','2026-02-18':'설날 다음날','2026-02-19':'대체공휴일','2026-03-01':'삼일절','2026-05-05':'어린이날','2026-05-24':'부처님 오신 날','2026-06-06':'현충일','2026-08-15':'광복절','2026-09-24':'추석 전날','2026-09-25':'추석','2026-09-26':'추석 다음날','2026-09-28':'대체공휴일','2026-10-03':'개천절','2026-10-09':'한글날','2026-12-25':'크리스마스'},
+  2027:{'2027-01-01':'신정','2027-01-27':'설날 연휴','2027-01-28':'설날 전날','2027-01-29':'설날','2027-01-30':'설날 다음날','2027-02-01':'대체공휴일','2027-03-01':'삼일절','2027-05-05':'어린이날','2027-05-13':'부처님 오신 날','2027-06-06':'현충일','2027-08-15':'광복절','2027-08-16':'대체공휴일','2027-09-22':'추석 연휴','2027-09-23':'추석 전날','2027-09-24':'추석','2027-09-25':'추석 다음날','2027-10-03':'개천절','2027-10-09':'한글날','2027-10-11':'대체공휴일','2027-12-25':'크리스마스','2027-12-27':'대체공휴일'},
+  2028:{'2028-01-01':'신정','2028-02-04':'설날 전날','2028-02-05':'설날','2028-02-06':'설날 다음날','2028-02-07':'대체공휴일','2028-03-01':'삼일절','2028-05-02':'부처님 오신 날','2028-05-05':'어린이날','2028-06-06':'현충일','2028-08-15':'광복절','2028-09-12':'추석 전날','2028-09-13':'추석','2028-09-14':'추석 다음날','2028-10-03':'개천절','2028-10-09':'한글날','2028-12-25':'크리스마스'},
+  2029:{'2029-01-01':'신정','2029-01-25':'설날 전날','2029-01-26':'설날','2029-01-27':'설날 다음날','2029-01-28':'대체공휴일','2029-03-01':'삼일절','2029-05-05':'어린이날','2029-05-20':'부처님 오신 날','2029-06-06':'현충일','2029-08-15':'광복절','2029-10-01':'추석 전날','2029-10-02':'추석','2029-10-03':'추석/개천절','2029-10-04':'대체공휴일','2029-10-09':'한글날','2029-12-25':'크리스마스'},
+  2030:{'2030-01-01':'신정','2030-02-11':'설날 전날','2030-02-12':'설날','2030-02-13':'설날 다음날','2030-03-01':'삼일절','2030-05-05':'어린이날','2030-05-09':'부처님 오신 날','2030-06-06':'현충일','2030-08-15':'광복절','2030-09-20':'추석 전날','2030-09-21':'추석','2030-09-22':'추석 다음날','2030-09-23':'대체공휴일','2030-10-03':'개천절','2030-10-09':'한글날','2030-12-25':'크리스마스'},
+};
+
+async function fetchHolidays(year){
+  if(holidayCache[year]) return holidayCache[year];
+  const statusEl=document.getElementById('holidayStatus');
+  if(!API_KEY||API_KEY==='YOUR_HOLIDAY_API_KEY'){
+    holidayCache[year]=HOLIDAY_FALLBACK[year]||{};
+    statusEl.textContent=`📋 ${year}년 기본 공휴일 데이터 사용 중`;
+    statusEl.className='holiday-status';
+    return holidayCache[year];
+  }
+  try{
+    statusEl.textContent=`🔄 ${year}년 공휴일 불러오는 중...`;
+    const holidays={};
+    const promises=[];
+    for(let m=1;m<=12;m++){
+      const url=`https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
+      promises.push(fetch(url).then(r=>r.json()).then(data=>{
+        const items=data?.response?.body?.items?.item;
+        if(!items) return;
+        const list=Array.isArray(items)?items:[items];
+        list.forEach(item=>{
+          const d=String(item.locdate);
+          holidays[`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`]=item.dateName;
+        });
+      }).catch(()=>{}));
+    }
+    await Promise.all(promises);
+    if(!Object.keys(holidays).length) throw new Error();
+    holidayCache[year]=holidays;
+    statusEl.textContent=`✅ ${year}년 공휴일 자동 업데이트 완료!`;
+    statusEl.className='holiday-status success';
+    setTimeout(()=>{statusEl.style.display='none';},3000);
+    return holidayCache[year];
+  }catch{
+    holidayCache[year]=HOLIDAY_FALLBACK[year]||{};
+    statusEl.textContent=`⚠️ API 실패 → 기본 데이터 사용`;
+    statusEl.className='holiday-status error';
+    return holidayCache[year];
+  }
+}
+
+function getHoliday(key){
+  const year=parseInt(key.substring(0,4));
+  return (holidayCache[year]||HOLIDAY_FALLBACK[year]||{})[key];
+}
+
+// ──────────────────────────────────────────────
+//  전역 상태
+// ──────────────────────────────────────────────
+let currentYear=2027, currentMonth=0;
+let members=['누리','건후','승윤'];  // ★ 선임팀장순
+let baseAmIndex=2;
+let overrides={};
+let modalKey=null, currentDayType='normal', currentAutoShift=null;
+
+const EVENT_TYPES=new Set(['off','half','edu','earlyout','special','none']);
+const SHIFT_TYPES=[
+  {value:'auto',     label:'(자동)'},
+  {value:'am',       label:'오전'},
+  {value:'pm',       label:'오후'},
+  {value:'night',    label:'야간'},
+  {value:'off',      label:'연차/휴가'},
+  {value:'half',     label:'반차 (시간 입력 가능)'},
+  {value:'edu',      label:'교육'},
+  {value:'earlyout', label:'조기출근'},
+  {value:'special',  label:'설비/기타'},
+  {value:'none',     label:'근무없음'},
+];
+
+// ──────────────────────────────────────────────
+//  ★ Firebase 실시간 동기화
+// ──────────────────────────────────────────────
+function initFirebase(){
+  const syncEl=document.getElementById('syncStatus');
+  db.ref('.info/connected').on('value',(snap)=>{
+    if(snap.val()){
+      syncEl.textContent='🟢 실시간 동기화 연결됨';
+      syncEl.className='sync-status';
+    } else {
+      syncEl.textContent='🔴 오프라인 - 자동 재연결 대기 중';
+      syncEl.className='sync-status error';
+    }
+  });
+  db.ref('ngp_schedule').on('value',(snap)=>{
+    const data=snap.val()||{};
+    overrides=data.overrides||{};
+    if(data.members) members=data.members;
+    if(data.baseAmIndex!==undefined) baseAmIndex=data.baseAmIndex;
+    document.getElementById('nameA').value=members[0];
+    document.getElementById('nameB').value=members[1];
+    document.getElementById('nameC').value=members[2];
+    document.getElementById('firstShift').value=baseAmIndex;
+    syncEl.textContent='✅ 동기화 완료! '+new Date().toLocaleTimeString('ko-KR');
+    syncEl.className='sync-status';
+    renderCalendar();
+  });
+}
+
+function saveToFirebase(){
+  const syncEl=document.getElementById('syncStatus');
+  syncEl.textContent='🔄 저장 중...'; syncEl.className='sync-status syncing';
+  db.ref('ngp_schedule').set({
+    overrides, members, baseAmIndex,
+    lastUpdated: new Date().toISOString(),
+    lastUpdatedBy: currentUser||'unknown'
+  });
+}
+
+// ──────────────────────────────────────────────
+//  유틸 함수
+// ──────────────────────────────────────────────
+function getAutoShift(date){
+  const baseMonday=new Date(2027,0,4);
+  const dow=date.getDay();
+  const monday=new Date(date);
+  monday.setDate(date.getDate()+(dow===0?-6:1-dow));
+  monday.setHours(0,0,0,0);
+  const weekNum=Math.round((monday-baseMonday)/(7*86400000));
+  const amIdx=((baseAmIndex+weekNum)%3+3)%3;
+  return{am:amIdx,pm:(amIdx+1)%3,night:(amIdx+2)%3};
+}
+function toKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function getDefaultDayType(date){
+  const dow=date.getDay(); const key=toKey(date);
+  if(dow===0||dow===6||getHoliday(key)) return 'off';
+  return 'normal';
+}
+function badgeClass(type){
+  return{'am':'badge-am','pm':'badge-pm','night':'badge-night','off':'badge-off',
+    'half':'badge-half','edu':'badge-edu','earlyout':'badge-half',
+    'special':'badge-special','none':'badge-special'}[type]||'badge-special';
+}
+function shiftLabel(type,ext,halfTime,name){
+  const L={'am':'오전','pm':'오후','night':'야간','off':'연차','half':'반차',
+    'edu':'교육','earlyout':'조출','special':'특수','none':'-'};
+  const ts=L[type]||type;
+  if(EVENT_TYPES.has(type)){
+    let s=`${ts} ${name}`;
+    if(type==='half'&&halfTime&&halfTime!=='0'&&halfTime!=='') s+=` ${halfTime}h`;
+    return s;
+  }
+  let s=`${ts} ${name}`;
+  if(ext&&ext!=='0'&&ext!=='') s+=` +${ext}h`;
+  return s;
+}
+function renderShifts(container,sd){
+  const wi=sd.filter(s=>!EVENT_TYPES.has(s.type)&&s.type!=='auto'&&s.type!=='none');
+  const ei=sd.filter(s=>EVENT_TYPES.has(s.type)&&s.type!=='none');
+  if(wi.length>0){
+    const wa=document.createElement('div');wa.className='shift-area-work';
+    wi.forEach(s=>{
+      const row=document.createElement('div');row.className='shift-row';
+      const b=document.createElement('span');
+      b.className=`badge ${s.ext&&s.ext!=='0'&&s.ext!==''?'badge-ext':badgeClass(s.type)}`;
+      b.textContent=shiftLabel(s.type,s.ext,s.halfTime,s.name);
+      row.appendChild(b);wa.appendChild(row);
+    });container.appendChild(wa);
+  }
+  if(ei.length>0){
+    const hr=document.createElement('hr');hr.className='event-divider';container.appendChild(hr);
+    const ea=document.createElement('div');ea.className='event-area';
+    ei.forEach(s=>{
+      const row=document.createElement('div');row.className='shift-row';
+      const b=document.createElement('span');b.className=`badge ${badgeClass(s.type)}`;
+      b.textContent=shiftLabel(s.type,s.ext,s.halfTime,s.name);
+      row.appendChild(b);ea.appendChild(row);
+    });container.appendChild(ea);
+  }
+}
+function renderJongju(container,jd){
+  if(!jd||!jd.active) return;
+  const row=document.createElement('div');row.className='shift-row';
+  const b=document.createElement('span');b.className='badge badge-jongju';
+  const tl={'am':'오전','pm':'오후','night':'야간','special':'설비'};
+  let text=`${tl[jd.type]||''} 종주`;
+  if(jd.hour&&jd.hour!=='0'&&jd.hour!=='') text+=` ${jd.hour}h`;
+  b.textContent=text;row.appendChild(b);container.appendChild(row);
+}
+function renderMemo(container,memo){
+  if(!memo) return;
+  const icon=document.createElement('div');
+  icon.className='memo-icon';icon.textContent='📌';
+  const getT=()=>{
+    let t=document.getElementById('globalMemoTooltip');
+    if(!t){t=document.createElement('div');t.id='globalMemoTooltip';t.className='memo-tooltip';document.body.appendChild(t);}
+    return t;
+  };
+  icon.addEventListener('mouseenter',()=>{
+    const t=getT();t.textContent=memo;t.style.display='block';
+    const r=icon.getBoundingClientRect();
+    t.style.left=Math.min(r.right+4,window.innerWidth-230)+'px';
+    t.style.top=Math.max(r.top-8,8)+'px';
+  });
+  icon.addEventListener('mouseleave',()=>{getT().style.display='none';});
+  icon.addEventListener('touchstart',(e)=>{
+    e.stopPropagation();const t=getT();
+    if(t.style.display==='block'&&t.dataset.memo===memo){t.style.display='none';return;}
+    t.textContent=memo;t.dataset.memo=memo;
+    const r=icon.getBoundingClientRect();
+    t.style.left=Math.min(r.left,window.innerWidth-230)+'px';
+    t.style.top=Math.max(r.top-80,8)+'px';t.style.display='block';
+  });
+  container.appendChild(icon);
+}
+document.addEventListener('touchstart',()=>{
+  const t=document.getElementById('globalMemoTooltip');if(t) t.style.display='none';
+});
+function renderCellContent(td,dayType,ov,auto){
+  const hj=ov&&ov.jongju&&ov.jongju.active;
+  const hm=ov&&ov.shifts;
+  if(dayType==='off'){
+    if(!hj){const ol=document.createElement('div');ol.className='off-label';ol.textContent='🔘 휴무';td.appendChild(ol);return;}
+    else{const tag=document.createElement('div');tag.className='off-jongju-tag';tag.textContent='🔘 휴무일 특별투입';td.appendChild(tag);}
+  }else if(dayType==='special'){
+    const st=document.createElement('div');st.className='special-tag';st.textContent='⭐ 특근';td.appendChild(st);
+  }
+  if(dayType!=='off'){
+    if(hm){
+      const sd=members.map((name,mi)=>({name,type:ov.shifts[mi].type,ext:ov.shifts[mi].ext||'',halfTime:ov.shifts[mi].halfTime||''})).filter(s=>s.type!=='none');
+      renderShifts(td,sd);
+    }else{
+      renderShifts(td,[
+        {name:members[auto.am],type:'am',ext:'',halfTime:''},
+        {name:members[auto.pm],type:'pm',ext:'',halfTime:''},
+        {name:members[auto.night],type:'night',ext:'',halfTime:''},
+      ]);
+    }
+  }else if(hj&&hm){
+    const sd=members.map((name,mi)=>({name,type:ov.shifts[mi].type,ext:ov.shifts[mi].ext||'',halfTime:ov.shifts[mi].halfTime||''})).filter(s=>s.type!=='none'&&s.type!=='auto');
+    if(sd.length>0) renderShifts(td,sd);
+  }
+  if(hj) renderJongju(td,ov.jongju);
+}
+
+// ──────────────────────────────────────────────
+//  달력 렌더링
+// ──────────────────────────────────────────────
+function renderCalendar(){
+  const mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('monthTitle').textContent=`${currentYear}년 ${mn[currentMonth]}`;
+  const tbody=document.getElementById('calBody');tbody.innerHTML='';
+  const firstDay=new Date(currentYear,currentMonth,1).getDay();
+  const lastDate=new Date(currentYear,currentMonth+1,0).getDate();
+  const prevLast=new Date(currentYear,currentMonth,0).getDate();
+  const today=new Date();
+  let date=1,nextDate=1;
+  for(let row=0;row<6;row++){
+    const tr=document.createElement('tr');let rhc=false;
+    for(let col=0;col<7;col++){
+      const td=document.createElement('td');
+      let cellDate,isCurrent=true;const cn=row*7+col;
+      if(cn<firstDay){cellDate=new Date(currentYear,currentMonth-1,prevLast-firstDay+cn+1);isCurrent=false;td.classList.add('other-month');}
+      else if(date>lastDate){cellDate=new Date(currentYear,currentMonth+1,nextDate++);isCurrent=false;td.classList.add('other-month');}
+      else{cellDate=new Date(currentYear,currentMonth,date++);rhc=true;}
+      if(col===0) td.classList.add('sunday');
+      if(col===6) td.classList.add('saturday');
+      if(cellDate.toDateString()===today.toDateString()) td.classList.add('today');
+      const key=toKey(cellDate);
+      const ov=overrides[key];
+      const dayType=ov?ov.dayType:getDefaultDayType(cellDate);
+      const hj=ov&&ov.jongju&&ov.jongju.active;
+      if(!td.classList.contains('other-month')){
+        td.classList.add(dayType==='off'?'day-off':dayType==='special'?'day-special':'day-normal');
+        if(dayType==='off'&&hj) td.classList.add('has-jongju');
+      }
+      const auto=getAutoShift(cellDate);
+      const numDiv=document.createElement('div');numDiv.className='date-num';numDiv.textContent=cellDate.getDate();
+      if(ov){const m=document.createElement('span');m.className='modified-mark';m.textContent='🔧';numDiv.appendChild(m);}
+      td.appendChild(numDiv);
+      const holiday=getHoliday(key);
+      if(holiday){const hl=document.createElement('div');hl.className='holiday-label';hl.textContent='🎌 '+holiday;td.appendChild(hl);}
+      if(!td.classList.contains('other-month')) renderCellContent(td,dayType,ov,auto);
+      if(ov&&ov.memo) renderMemo(td,ov.memo);
+      if(isCurrent){
+        td.addEventListener('click',()=>{
+          // ★ 게스트는 수정 불가
+          if(isViewOnly||!currentUser){
+            const locked=document.getElementById('editLocked');
+            locked.classList.add('show');
+            setTimeout(()=>locked.classList.remove('show'),2000);
+            return;
+          }
+          openModal(key,cellDate);
+        });
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+    if(row>=4&&!rhc) break;
+  }
+}
+
+async function onYearChange(){
+  currentYear=parseInt(document.getElementById('yearSel').value);
+  currentMonth=0;
+  await fetchHolidays(currentYear);
+  renderCalendar();
+}
+function prevMonth(){
+  currentMonth--;
+  if(currentMonth<0){currentMonth=11;currentYear--;document.getElementById('yearSel').value=currentYear;fetchHolidays(currentYear).then(()=>renderCalendar());return;}
+  renderCalendar();
+}
+function nextMonth(){
+  currentMonth++;
+  if(currentMonth>11){currentMonth=0;currentYear++;document.getElementById('yearSel').value=currentYear;fetchHolidays(currentYear).then(()=>renderCalendar());return;}
+  renderCalendar();
+}
+function applyConfig(){
+  members[0]=document.getElementById('nameA').value||'누리';
+  members[1]=document.getElementById('nameB').value||'건후';
+  members[2]=document.getElementById('nameC').value||'승윤';
+  baseAmIndex=parseInt(document.getElementById('firstShift').value);
+  saveToFirebase();
+}
+function selectDayType(type){
+  currentDayType=type;
+  document.getElementById('btnOff').className='day-type-btn'+(type==='off'?' selected-off':'');
+  document.getElementById('btnSpecial').className='day-type-btn'+(type==='special'?' selected-special':'');
+  document.getElementById('btnNormal').className='day-type-btn'+(type==='normal'?' selected-normal':'');
+  document.getElementById('editSection').classList.toggle('show',type!=='off');
+  document.getElementById('jongjuMemberNotice').classList.toggle('show',
+    type==='off'&&document.getElementById('jongjuToggle').checked);
+}
+function toggleJongju(){
+  const c=document.getElementById('jongjuToggle').checked;
+  document.getElementById('jongjuToggleLabel').textContent=c?'✅ 종주 투입':'투입 없음';
+  document.getElementById('jongjuDetail').classList.toggle('show',c);
+  document.getElementById('jongjuMemberNotice').classList.toggle('show',c&&currentDayType==='off');
+}
+function applyLeaveAuto(li,autoShift){
+  members.forEach((_,mi)=>{
+    const sel=document.getElementById(`sel_${mi}`);
+    const ei=document.getElementById(`ext_${mi}`);
+    const row=document.getElementById(`mrow_${mi}`);
+    const hw=document.getElementById(`halfwrap_${mi}`);
+    if(li===-1){sel.value='auto';ei.value='';if(hw)hw.classList.remove('show');row.classList.remove('is-off','is-ext');return;}
+    if(mi===li){sel.value='off';ei.value='';if(hw)hw.classList.remove('show');row.classList.add('is-off');row.classList.remove('is-ext');}
+    else{
+      let at='am';if(autoShift.pm===mi)at='pm';else if(autoShift.night===mi)at='night';
+      sel.value=at;ei.value='4';if(hw)hw.classList.remove('show');
+      row.classList.add('is-ext');row.classList.remove('is-off');
+    }
+  });
+  const notice=document.getElementById('leaveNotice');
+  if(li>=0){
+    const others=members.filter((_,i)=>i!==li);
+    notice.textContent=`✅ ${members[li]} 연차 → ${others.join(', ')} 자동 +4h 적용됨`;
+    notice.classList.add('show');
+  }else{notice.classList.remove('show');}
+}
+function openModal(key,date){
+  modalKey=key;currentAutoShift=getAutoShift(date);
+  const existing=overrides[key];
+  const initType=existing?existing.dayType:getDefaultDayType(date);
+  document.getElementById('modalTitle').textContent=
+    `📅 ${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일 근무 편집`;
+  selectDayType(initType);
+  const lq=document.getElementById('leaveQuick');lq.innerHTML='';
+  const nb=document.createElement('button');nb.className='leave-btn none-active';nb.textContent='✅ 정상근무';
+  nb.dataset.idx='-1';nb.onclick=()=>setLeaveBtn(-1,currentAutoShift);lq.appendChild(nb);
+  members.forEach((name,mi)=>{
+    const btn=document.createElement('button');btn.className='leave-btn';btn.textContent=`🏖️ ${name} 연차`;
+    btn.dataset.idx=mi;btn.onclick=()=>setLeaveBtn(mi,currentAutoShift);lq.appendChild(btn);
+  });
+  const container=document.getElementById('memberRows');container.innerHTML='';
+  members.forEach((name,mi)=>{
+    let at='am';if(currentAutoShift.pm===mi)at='pm';else if(currentAutoShift.night===mi)at='night';
+    const saved=existing?existing.shifts?.[mi]:null;
+    const curType=saved?saved.type:'auto';const curExt=saved?saved.ext:'';const curHT=saved?saved.halfTime||'':'';
+    const row=document.createElement('div');row.className='member-row';row.id=`mrow_${mi}`;
+    const ns=document.createElement('span');ns.className='mname';ns.textContent=name;row.appendChild(ns);
+    const sel=document.createElement('select');sel.id=`sel_${mi}`;
+    SHIFT_TYPES.forEach(opt=>{
+      const o=document.createElement('option');o.value=opt.value;
+      o.textContent=opt.value==='auto'?`(자동: ${{'am':'오전','pm':'오후','night':'야간'}[at]})`:opt.label;
+      if(opt.value===curType)o.selected=true;sel.appendChild(o);
+    });
+    sel.onchange=()=>{
+      document.getElementById(`halfwrap_${mi}`).classList.toggle('show',sel.value==='half');
+      syncLeaveButtons(currentAutoShift);
+    };
+    row.appendChild(sel);
+    const ew=document.createElement('div');ew.className='ext-wrap';
+    const ps=document.createElement('span');ps.textContent='+';
+    const ei=document.createElement('input');ei.type='number';ei.min='0';ei.max='24';ei.step='0.5';
+    ei.id=`ext_${mi}`;ei.value=curExt||'';ei.placeholder='0';
+    const hs=document.createElement('span');hs.textContent='h';
+    ew.appendChild(ps);ew.appendChild(ei);ew.appendChild(hs);row.appendChild(ew);
+    const hw=document.createElement('div');hw.className='half-time-wrap';hw.id=`halfwrap_${mi}`;
+    if(curType==='half')hw.classList.add('show');
+    const hl=document.createElement('span');hl.textContent='반차';
+    const hi=document.createElement('input');hi.type='number';hi.min='0.5';hi.max='12';hi.step='0.5';
+    hi.id=`half_${mi}`;hi.value=curHT||'';hi.placeholder='시간';
+    const hh=document.createElement('span');hh.textContent='h';
+    hw.appendChild(hl);hw.appendChild(hi);hw.appendChild(hh);row.appendChild(hw);
+    container.appendChild(row);
+    if(saved){
+      if(saved.type==='off')row.classList.add('is-off');
+      else if(saved.ext&&saved.ext!=='0'&&saved.ext!=='')row.classList.add('is-ext');
+    }
+  });
+  document.getElementById('memoInput').value=existing?existing.memo||'':'';
+  document.getElementById('leaveNotice').classList.remove('show');
+  if(existing&&existing.shifts){
+    const oi=existing.shifts.findIndex(s=>s&&s.type==='off');
+    highlightLeaveBtn(oi>=0?oi:-1);
+    if(oi>=0){
+      const others=members.filter((_,i)=>i!==oi);
+      const n=document.getElementById('leaveNotice');
+      n.textContent=`✅ ${members[oi]} 연차 → ${others.join(', ')} +4h 적용됨`;
+      n.classList.add('show');
+    }
+  }else{highlightLeaveBtn(-1);}
+  const jd=existing?existing.jongju:null;const jt=document.getElementById('jongjuToggle');
+  jt.checked=!!(jd&&jd.active);
+  document.getElementById('jongjuToggleLabel').textContent=jt.checked?'✅ 종주 투입':'투입 없음';
+  document.getElementById('jongjuDetail').classList.toggle('show',jt.checked);
+  document.getElementById('jongjuType').value=jd?jd.type||'am':'am';
+  document.getElementById('jongjuHour').value=jd?jd.hour||'':'';
+  document.getElementById('jongjuMemberNotice').classList.toggle('show',jt.checked&&initType==='off');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function setLeaveBtn(li,auto){highlightLeaveBtn(li);applyLeaveAuto(li,auto);}
+function highlightLeaveBtn(li){
+  document.querySelectorAll('.leave-btn').forEach(btn=>{
+    btn.classList.remove('active','none-active');const idx=parseInt(btn.dataset.idx);
+    if(idx===-1&&li===-1)btn.classList.add('none-active');else if(idx===li)btn.classList.add('active');
+  });
+}
+function syncLeaveButtons(auto){
+  const oi=members.findIndex((_,mi)=>document.getElementById(`sel_${mi}`)?.value==='off');
+  highlightLeaveBtn(oi);
+  const notice=document.getElementById('leaveNotice');
+  if(oi>=0){const others=members.filter((_,i)=>i!==oi);notice.textContent=`✅ ${members[oi]} 연차 → ${others.join(', ')} +4h 적용됨`;notice.classList.add('show');}
+  else{notice.classList.remove('show');}
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');modalKey=null;}
+function saveDay(){
+const ja=document.getElementById('jongjuToggle').checked;
+  const jd={
+    active:ja,
+    type:document.getElementById('jongjuType').value,
+    hour:document.getElementById('jongjuHour').value||''
+  };
+
+  if(currentDayType==='off'){
+    const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
+    if(dt==='off'&&!ja){ delete overrides[modalKey]; }
+    else{ overrides[modalKey]={dayType:'off',shifts:null,memo:'',jongju:jd}; }
+  } else {
+    const shifts=members.map((_,mi)=>({
+      type:document.getElementById(`sel_${mi}`).value,
+      ext:document.getElementById(`ext_${mi}`).value||'',
+      halfTime:document.getElementById(`half_${mi}`)?.value||'',
+    }));
+    const memo=document.getElementById('memoInput').value.trim();
+
+    // ★ 이벤트 여부 확인
+    const hasEvent=shifts.some(s=>
+      EVENT_TYPES.has(s.type)&&s.type!=='none'
+    );
+    const allAuto=shifts.every(s=>s.type==='auto');
+    const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
+
+    if(allAuto&&!memo&&currentDayType===dt&&!ja){
+      delete overrides[modalKey];
+    } else {
+      // ★ 핵심: 이벤트 있을 때 auto인 나머지는
+      //         실제 근무 타입으로 변환해서 저장!
+      const finalShifts=shifts.map((s,mi)=>{
+        if(s.type==='auto'&&hasEvent){
+          let autoType='am';
+          if(currentAutoShift.pm===mi) autoType='pm';
+          else if(currentAutoShift.night===mi) autoType='night';
+          return{type:autoType, ext:s.ext, halfTime:s.halfTime};
+        }
+        return s;
+      });
+
+      overrides[modalKey]={
+        dayType:currentDayType,
+        shifts:allAuto&&!hasEvent?null:finalShifts,
+        memo,
+        jongju:jd
+      };
+    }
+  }
+  closeModal();
+  saveToFirebase(); // ★ Firebase 실시간 저장
+}
+
+// ──────────────────────────────────────────────
+//  초기 실행
+// ──────────────────────────────────────────────
+(async()=>{
+  initPinScreen();
+
+  // ★ 세션 유지 (새로고침 시 자동 로그인)
+  const savedUser=sessionStorage.getItem('ngpUser');
+  if(savedUser&&PIN_CONFIG[savedUser]){
+    loginSuccess(savedUser);
+  }
+
+  await fetchHolidays(currentYear);
+  initFirebase(); // ★ Firebase 실시간 연결
+})();
+</script>
+</body>
+</html>
