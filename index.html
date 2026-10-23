@@ -733,31 +733,46 @@ function shiftLabel(type,ext,halfTime,name){
   return s;
 }
 
-function renderShifts(container,sd){
-  const wi=sd.filter(s=>!EVENT_TYPES.has(s.type)&&s.type!=='auto'&&s.type!=='none');
-  const ei=sd.filter(s=>EVENT_TYPES.has(s.type)&&s.type!=='none');
-  if(wi.length>0){
-    const wa=document.createElement('div');wa.className='shift-area-work';
-    wi.forEach(s=>{
-      const row=document.createElement('div');row.className='shift-row';
-      const b=document.createElement('span');
-      b.className=`badge ${s.ext&&s.ext!=='0'&&s.ext!==''?'badge-ext':badgeClass(s.type)}`;
-      b.textContent=shiftLabel(s.type,s.ext,s.halfTime,s.name);
-      row.appendChild(b);wa.appendChild(row);
-    });container.appendChild(wa);
+function renderShifts(container, sd){
+  // ★ 근무 순서 정렬: 오전 → 오후 → 야간 → 기타
+  const ORDER = {'am':0, 'pm':1, 'night':2};
+
+  // 근무자 (상단) - 오전/오후/야간 순서 정렬
+  const workItems = sd
+    .filter(s => !EVENT_TYPES.has(s.type) && s.type !== 'auto' && s.type !== 'none')
+    .sort((a, b) => (ORDER[a.type] ?? 3) - (ORDER[b.type] ?? 3));
+
+  // 이벤트 (하단) - 오전/오후/야간 기준 원래 근무 순서로 정렬
+  const eventItems = sd
+    .filter(s => EVENT_TYPES.has(s.type) && s.type !== 'none')
+    .sort((a, b) => (ORDER[a.origOrder] ?? 3) - (ORDER[b.origOrder] ?? 3));
+
+  if(workItems.length > 0){
+    const wa = document.createElement('div');
+    wa.className = 'shift-area-work';
+    workItems.forEach(s => {
+      const row = document.createElement('div'); row.className = 'shift-row';
+      const b = document.createElement('span');
+      b.className = `badge ${s.ext && s.ext !== '0' && s.ext !== '' ? 'badge-ext' : badgeClass(s.type)}`;
+      b.textContent = shiftLabel(s.type, s.ext, s.halfTime, s.name);
+      row.appendChild(b); wa.appendChild(row);
+    });
+    container.appendChild(wa);
   }
-  if(ei.length>0){
-    const hr=document.createElement('hr');hr.className='event-divider';container.appendChild(hr);
-    const ea=document.createElement('div');ea.className='event-area';
-    ei.forEach(s=>{
-      const row=document.createElement('div');row.className='shift-row';
-      const b=document.createElement('span');
-      b.className=`badge ${badgeClass(s.type)}`;
-      b.textContent=shiftLabel(s.type,s.ext,s.halfTime,s.name);
-      row.appendChild(b);ea.appendChild(row);
-    });container.appendChild(ea);
+
+  if(eventItems.length > 0){
+    const hr = document.createElement('hr'); hr.className = 'event-divider';
+    container.appendChild(hr);
+    const ea = document.createElement('div'); ea.className = 'event-area';
+    eventItems.forEach(s => {
+      const row = document.createElement('div'); row.className = 'shift-row';
+      const b = document.createElement('span');
+      b.className = `badge ${badgeClass(s.type)}`;
+      b.textContent = shiftLabel(s.type, s.ext, s.halfTime, s.name);
+      row.appendChild(b); ea.appendChild(row);
+    });
+    container.appendChild(ea);
   }
-}
 
 function renderJongju(container,jd){
   if(!jd||!jd.active) return;
@@ -812,32 +827,71 @@ function renderShiftTime(td,shiftTimes){
   td.appendChild(div);
 }
 
-function renderCellContent(td,dayType,ov,auto){
-  const hj=ov&&ov.jongju&&ov.jongju.active;
-  const hm=ov&&ov.shifts;
-  if(dayType==='off'){
+function renderCellContent(td, dayType, ov, auto){
+  const hj = ov && ov.jongju && ov.jongju.active;
+  const hm = ov && ov.shifts;
+
+  if(dayType === 'off'){
     if(!hj){const ol=document.createElement('div');ol.className='off-label';ol.textContent='🔘 휴무';td.appendChild(ol);return;}
     else{const tag=document.createElement('div');tag.className='off-jongju-tag';tag.textContent='🔘 휴무일 특별투입';td.appendChild(tag);}
-  }else if(dayType==='special'){
+  } else if(dayType === 'special'){
     const st=document.createElement('div');st.className='special-tag';st.textContent='⭐ 특근';td.appendChild(st);
   }
-  if(dayType!=='off'){
+
+  if(dayType !== 'off'){
     if(hm){
-      const sd=members.map((name,mi)=>({name,type:ov.shifts[mi].type,ext:ov.shifts[mi].ext||'',halfTime:ov.shifts[mi].halfTime||''})).filter(s=>s.type!=='none');
-      renderShifts(td,sd);
-    }else{
+      // ★ 핵심: origOrder(원래 근무 순서) 추가해서 정렬 기준으로 사용
+      const autoRef = getAutoShift(
+        new Date(parseInt(ov.dayType ? modalKey?.split('-')[0] || currentYear : currentYear),
+          currentMonth, 1)
+      );
+
+      // ★ 오전/오후/야간 순서 기준으로 shifts 정렬
+      const ORDER = {'am':0, 'pm':1, 'night':2};
+      const getOrigOrder = (mi) => {
+        if(auto.am === mi) return 0;
+        if(auto.pm === mi) return 1;
+        if(auto.night === mi) return 2;
+        return 3;
+      };
+
+      const sd = members.map((name, mi) => ({
+        name,
+        type:      ov.shifts[mi].type,
+        ext:       ov.shifts[mi].ext || '',
+        halfTime:  ov.shifts[mi].halfTime || '',
+        origOrder: getOrigOrder(mi),  // ★ 원래 근무 순서
+      })).filter(s => s.type !== 'none');
+
+      // ★ 오전→오후→야간 순서로 정렬 후 렌더링
+      sd.sort((a, b) => {
+        const aOrder = EVENT_TYPES.has(a.type) ? a.origOrder : (ORDER[a.type] ?? 3);
+        const bOrder = EVENT_TYPES.has(b.type) ? b.origOrder : (ORDER[b.type] ?? 3);
+        return aOrder - bOrder;
+      });
+
+      renderShifts(td, sd);
+    } else {
+      // 자동순환 - 이미 오전/오후/야간 순서
       renderShifts(td,[
-        {name:members[auto.am],type:'am',ext:'',halfTime:''},
-        {name:members[auto.pm],type:'pm',ext:'',halfTime:''},
-        {name:members[auto.night],type:'night',ext:'',halfTime:''},
+        {name:members[auto.am],    type:'am',    ext:'', halfTime:'', origOrder:0},
+        {name:members[auto.pm],    type:'pm',    ext:'', halfTime:'', origOrder:1},
+        {name:members[auto.night], type:'night', ext:'', halfTime:'', origOrder:2},
       ]);
     }
-  }else if(hj&&hm){
-    const sd=members.map((name,mi)=>({name,type:ov.shifts[mi].type,ext:ov.shifts[mi].ext||'',halfTime:ov.shifts[mi].halfTime||''})).filter(s=>s.type!=='none'&&s.type!=='auto');
-    if(sd.length>0) renderShifts(td,sd);
+  } else if(hj && hm){
+    const sd = members.map((name, mi) => ({
+      name,
+      type:     ov.shifts[mi].type,
+      ext:      ov.shifts[mi].ext || '',
+      halfTime: ov.shifts[mi].halfTime || '',
+      origOrder: auto.am===mi ? 0 : auto.pm===mi ? 1 : auto.night===mi ? 2 : 3,
+    })).filter(s => s.type !== 'none' && s.type !== 'auto');
+    if(sd.length > 0) renderShifts(td, sd);
   }
-  if(hj) renderJongju(td,ov.jongju);
-  if(ov&&ov.shiftTimes) renderShiftTime(td,ov.shiftTimes);
+
+  if(hj) renderJongju(td, ov.jongju);
+  if(ov && ov.shiftTimes) renderShiftTime(td, ov.shiftTimes);
 }
 
 // ──────────────────────────────────────────────
