@@ -113,8 +113,12 @@
     .badge-pm    {background:#c6f6d5;color:#276749;}
     .badge-night {background:#e9d8fd;color:#553c9a;}
     .badge-ext   {background:#fefcbf;color:#744210;}
-    .badge-off   {background:#fed7d7;color:#9b2c2c;}
+    .badge-off   {background:#fed7d7;color:#742a2a;}
     .badge-half  {background:#fbd38d;color:#7b341e;}
+    .badge-timeleave{background:#fbd38d;color:#7b341e;}
+    .badge-family{background:#fce4ec;color:#880e4f;}
+    .badge-fitness{background:#e8f5e9;color:#1b5e20;}
+    .badge-groupoff{background:#ffebee;color:#b71c1c;}
     .badge-edu   {background:#c6f6d5;color:#22543d;border:1px solid #9ae6b4;}
     .badge-special{background:#e2e8f0;color:#4a5568;}
     .badge-jongju{background:#bee3f8;color:#2c5282;border:1px solid #90cdf4;font-weight:700;}
@@ -735,10 +739,16 @@ function shiftLabel(type,ext,halfTime,name){
   const ts=L[type]||type;
   if(EVENT_TYPES.has(type)){
     let s=`${ts} ${name}`;
-    // ★ 반차/시간차 시간 표시
-    if((type==='half'||type==='timeleave')&&halfTime&&halfTime!=='0'&&halfTime!=='')
-      s+=` ${halfTime}h`;
+    // ★ 반차/시간차/조출 시간 표시
+    if((type==='half'||type==='timeleave'||type==='earlyout')
+      &&halfTime&&halfTime!=='0'&&halfTime!=='')
+      s+=` +${halfTime}h`;
     return s;
+  }
+  // ★ 근무 타입: "오전 건후 +4h" 형식
+  let s=`${ts} ${name}`;
+  if(ext&&ext!=='0'&&ext!=='') s+=` +${ext}h`;
+  return s;
   }
   let s=`${ts} ${name}`;
   if(ext&&ext!=='0'&&ext!=='') s+=` +${ext}h`;
@@ -1019,8 +1029,19 @@ function openModal(key,date){
     });
     sel.onchange=()=>{
       // ★ 반차 또는 시간차 선택 시 시간 입력란 표시
-      const hw=document.getElementById(`halfwrap_${mi}`);
-      hw.classList.toggle('show',sel.value==='half'||sel.value==='timeleave');
+        const hw=document.getElementById(`halfwrap_${mi}`);
+      hw.classList.toggle('show',
+      sel.value==='half'||
+      sel.value==='timeleave'||
+      sel.value==='earlyout'  // ★ 조출 추가
+        );
+      // ★ 라벨도 변경
+      const hl=hw.querySelector('span');
+      if(hl){
+      if(sel.value==='timeleave') hl.textContent='시간차';
+      else if(sel.value==='earlyout') hl.textContent='조출';
+      else hl.textContent='반차';
+      }
       syncLeaveButtons(currentAutoShift);
     };
     row.appendChild(sel);
@@ -1032,8 +1053,12 @@ function openModal(key,date){
     ew.appendChild(ps);ew.appendChild(ei);ew.appendChild(hs);row.appendChild(ew);
     // ★ 반차/시간차 시간 입력란
     const hw=document.createElement('div');hw.className='half-time-wrap';hw.id=`halfwrap_${mi}`;
-    if(curType==='half'||curType==='timeleave') hw.classList.add('show');
-    const hl=document.createElement('span');hl.textContent=curType==='timeleave'?'시간차':'반차';
+    if(curType==='half'||curType==='timeleave'||curType==='earlyout')
+      hw.classList.add('show');
+    const hl=document.createElement('span');
+    hl.textContent=
+      curType==='timeleave' ? '시간차' :
+      curType==='earlyout'  ? '조출'   : '반차';
     const hi=document.createElement('input');hi.type='number';hi.min='0.5';hi.max='12';hi.step='0.5';
     hi.id=`half_${mi}`;hi.value=curHT||'';hi.placeholder='시간';
     const hh=document.createElement('span');hh.textContent='h';
