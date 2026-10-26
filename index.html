@@ -155,7 +155,7 @@
     .memo-icon{display:inline-flex;align-items:center;
       font-size:.75rem;color:#718096;cursor:pointer;
       background:#f7fafc;border-radius:3px;
-      padding:1px 3px;border:1px solid #e2e8f0;
+      padding:2px 4px;border:1px solid #e2e8f0;
       margin-left:4px;}
     .memo-icon:hover{background:#ebf8ff;border-color:#2b6cb0;}
     .memo-modal-overlay{display:none;position:fixed;inset:0;
@@ -1031,7 +1031,7 @@ td.appendChild(numDiv);
 const holiday=getHoliday(key);
 if(holiday){
   const hl=document.createElement('div');hl.className='holiday-label';
-  hl.innerHTML='<img src="https://flagcdn.com/w20/kr.png" style="width:14px;height:10px;margin-right:2px;vertical-align:middle;">'+holiday;
+  hl.textContent = '📍 ' + holiday;  // 빨간 핀
 }
 if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
       if(isCurrent){
