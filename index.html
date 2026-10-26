@@ -1017,7 +1017,7 @@ function renderCalendar(){
       if(holiday){
         const hl=document.createElement('div');hl.className='holiday-label';
         // ★ 수정: 태극기 이미지
-        hl.textContent = '⛱️ ' + holiday;
+        hl.innerHTML = '<img src="https://flagcdn.com/w20/kr.png" style="width:12px;height:9px;vertical-align:middle;margin-right:2px;">'+holiday;
         td.appendChild(hl);
       }
       if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
