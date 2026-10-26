@@ -152,9 +152,11 @@
     .badge-groupoff{background:#ffebee;color:#b71c1c;}
     .badge-edu     {background:#c6f6d5;color:#22543d;}
     .badge-special {background:#e2e8f0;color:#4a5568;}
-    .memo-icon{position:absolute;bottom:3px;right:4px;font-size:.75rem;
-      color:#718096;cursor:pointer;z-index:10;background:#f7fafc;
-      border-radius:3px;padding:1px 3px;border:1px solid #e2e8f0;}
+    .memo-icon{display:inline-flex;align-items:center;
+      font-size:.75rem;color:#718096;cursor:pointer;
+      background:#f7fafc;border-radius:3px;
+      padding:1px 3px;border:1px solid #e2e8f0;
+      margin-left:4px;}
     .memo-icon:hover{background:#ebf8ff;border-color:#2b6cb0;}
     .memo-modal-overlay{display:none;position:fixed;inset:0;
       background:rgba(0,0,0,.45);z-index:400;align-items:center;justify-content:center;}
@@ -1014,19 +1016,24 @@ function renderCalendar(){
       const numDiv=document.createElement('div');numDiv.className='date-num';
       numDiv.textContent=cellDate.getDate();
       if(ov){const m=document.createElement('span');m.className='modified-mark';m.textContent='🔧';numDiv.appendChild(m);}
-      td.appendChild(numDiv);
-      const holiday=getHoliday(key);
-      if(holiday){
-        const hl=document.createElement('div');hl.className='holiday-label';
-        hl.textContent='🎌 '+holiday;td.appendChild(hl);
-      }
-      if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
-      if(ov&&ov.memo){
-        const dateLabel=`${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
-        const icon=document.createElement('div');icon.className='memo-icon';icon.textContent='📌';
-        icon.addEventListener('click',e=>{e.stopPropagation();openMemoModal(ov.memo,dateLabel);});
-        td.appendChild(icon);
-      }
+      // ★ 메모 아이콘을 numDiv 안으로 이동
+if(ov&&ov.memo){
+  const icon=document.createElement('span');
+  icon.className='memo-icon';icon.textContent='📌';
+  icon.addEventListener('click',e=>{
+    e.stopPropagation();
+    const dateLabel=`${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
+    openMemoModal(ov.memo,dateLabel);
+  });
+  numDiv.appendChild(icon); // ← numDiv로 변경!
+}
+td.appendChild(numDiv);
+const holiday=getHoliday(key);
+if(holiday){
+  const hl=document.createElement('div');hl.className='holiday-label';
+  hl.textContent='🎌 '+holiday;td.appendChild(hl);
+}
+if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
       if(isCurrent){
         td.addEventListener('click',()=>{
           if(isMobile()){
