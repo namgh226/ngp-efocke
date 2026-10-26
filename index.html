@@ -4,7 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>포장전자 근무달력</title>
-  <!-- PWA -->
   <link rel="manifest" href="/ngp-efocke/manifest.json">
   <meta name="theme-color" content="#2b6cb0">
   <meta name="mobile-web-app-capable" content="yes">
@@ -18,8 +17,8 @@
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Malgun Gothic','Segoe UI',sans-serif;background:#f0f4f8;color:#2d3748;}
     header{background:linear-gradient(135deg,#2b6cb0,#2c7a7b);color:#fff;padding:18px 24px;text-align:center;}
-    header h1{font-size:1.4rem;}
-    header p{font-size:0.85rem;opacity:.85;margin-top:4px;}
+    header h1{font-size:1.5rem;}
+    header p{font-size:0.88rem;opacity:.85;margin-top:4px;}
     .pin-overlay{display:flex;position:fixed;inset:0;
       background:linear-gradient(135deg,#2b6cb0,#2c7a7b);
       z-index:999;align-items:center;justify-content:center;}
@@ -99,61 +98,57 @@
     .nav button:hover{background:#cbd5e0;}
     .nav select{padding:6px 10px;border:1px solid #cbd5e0;border-radius:6px;
       font-size:.9rem;font-weight:600;background:#fff;cursor:pointer;}
-    /* ★ 달력 */
-    .calendar-wrap{padding:8px;overflow-x:hidden;}
-    table{width:100%;border-collapse:collapse;background:#fff;
+
+    /* ══ PC 달력 ══ */
+    .calendar-wrap{padding:14px 20px;overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;min-width:720px;background:#fff;
       border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);
       table-layout:fixed;}
-    thead th{background:#2b6cb0;color:#fff;padding:8px 0;font-size:.82rem;}
+    thead th{background:#2b6cb0;color:#fff;padding:10px 0;font-size:.88rem;}
     thead th:first-child{background:#e53e3e;}
     thead th:last-child{background:#3182ce;}
-    /* ★ 핵심: 셀 높이 고정 */
-    td{border:1px solid #e2e8f0;vertical-align:top;padding:4px;
-      height:90px;max-height:90px;overflow:hidden;
+    td{border:1px solid #e2e8f0;vertical-align:top;padding:6px;
+      height:95px;max-height:95px;overflow:hidden;
       font-size:.75rem;width:14.28%;
       cursor:pointer;transition:background .15s;position:relative;}
     td:hover{filter:brightness(.97);}
     td.day-off    {background:#f0f0f0;}
     td.day-special{background:#fffde7;}
     td.day-normal {background:#fff;}
-    .date-num{font-weight:700;font-size:.85rem;margin-bottom:2px;
-      display:flex;align-items:center;gap:2px;}
+    .date-num{font-weight:700;font-size:.95rem;margin-bottom:3px;
+      display:flex;align-items:center;gap:4px;}
     .sunday .date-num{color:#e53e3e;}
     .saturday .date-num{color:#3182ce;}
     .other-month{background:#f7fafc !important;}
     .other-month .date-num{color:#a0aec0;}
     .today{outline:2px solid #2b6cb0;outline-offset:-2px;}
     .today .date-num{color:#2b6cb0;}
-    .holiday-label{font-size:.6rem;color:#c53030;font-weight:600;
-      margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .modified-mark{font-size:.6rem;color:#e53e3e;margin-left:auto;}
+    .holiday-label{font-size:.7rem;color:#c53030;font-weight:600;margin-bottom:2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .modified-mark{font-size:.62rem;color:#e53e3e;margin-left:auto;}
     .off-label{display:flex;align-items:center;justify-content:center;
-      height:55px;font-size:.82rem;color:#a0aec0;font-weight:700;}
-    .special-tag{display:inline-block;font-size:.6rem;background:#f6e05e;color:#744210;
-      border-radius:3px;padding:1px 4px;font-weight:700;margin-bottom:1px;}
-    /* ★ 셀 근무 표시 */
-    .cell-shift-row{display:flex;flex-direction:column;gap:0px;}
-    /* 라벨+이름 한 줄 */
-    .cell-shift-top{display:flex;align-items:center;gap:2px;}
-    /* 시간은 아래 줄 */
-    .cell-shift-time{font-size:.58rem;color:#4a5568;padding-left:20px;}
-      margin-bottom:1px;line-height:1.2;
-      border-radius:3px;padding:1px 3px;}
+      height:55px;font-size:.88rem;color:#a0aec0;font-weight:700;}
+    .special-tag{display:inline-block;font-size:.7rem;background:#f6e05e;color:#744210;
+      border-radius:3px;padding:1px 5px;font-weight:700;margin-bottom:2px;}
+
+    /* PC 근무 표시 */
+    .cell-shift-row{display:flex;align-items:center;gap:3px;
+      margin-bottom:2px;font-size:.78rem;line-height:1.3;
+      border-radius:4px;padding:1px 4px;}
     .cell-shift-row.row-am   {background:#dbeafe;}
     .cell-shift-row.row-pm   {background:#dcfce7;}
     .cell-shift-row.row-night{background:#ede9fe;}
-    .cell-shift-label{font-weight:700;min-width:18px;font-size:.6rem;}
+    .cell-shift-label{font-weight:700;font-size:.72rem;min-width:24px;}
     .cell-shift-label.am   {color:#1d4ed8;}
     .cell-shift-label.pm   {color:#15803d;}
     .cell-shift-label.night{color:#6d28d9;}
-    .cell-shift-name{font-weight:700;color:#1a202c;font-size:.65rem;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45px;}
-    .cell-shift-time{color:#4a5568;font-size:.58rem;margin-left:1px;white-space:nowrap;}
-    .cell-shift-ext{font-size:.58rem;font-weight:700;color:#b45309;
-      margin-left:1px;background:#fef3c7;border-radius:2px;padding:0 2px;white-space:nowrap;}
-    .cell-event-area{margin-top:1px;border-top:1px dashed #e2e8f0;padding-top:1px;}
-    .badge{border-radius:3px;padding:0 3px;font-size:.6rem;
-      font-weight:600;white-space:nowrap;display:inline-block;margin:0 1px 1px 0;}
+    .cell-shift-name{font-weight:700;color:#1a202c;font-size:.78rem;}
+    .cell-shift-time{color:#4a5568;font-size:.7rem;margin-left:2px;}
+    .cell-shift-ext{font-size:.68rem;font-weight:700;color:#b45309;
+      margin-left:2px;background:#fef3c7;border-radius:3px;padding:0 3px;}
+    .cell-event-area{margin-top:2px;border-top:1px dashed #e2e8f0;padding-top:2px;}
+    .badge{border-radius:3px;padding:1px 4px;font-size:.72rem;
+      font-weight:600;white-space:nowrap;display:inline-block;margin:1px 1px;}
     .badge-off     {background:#fed7d7;color:#742a2a;}
     .badge-timeleave{background:#fbd38d;color:#7b341e;}
     .badge-family  {background:#fce4ec;color:#880e4f;}
@@ -161,9 +156,11 @@
     .badge-groupoff{background:#ffebee;color:#b71c1c;}
     .badge-edu     {background:#c6f6d5;color:#22543d;}
     .badge-special {background:#e2e8f0;color:#4a5568;}
-    .memo-icon{position:absolute;bottom:2px;right:3px;font-size:.65rem;
+    .memo-icon{position:absolute;bottom:3px;right:4px;font-size:.75rem;
       color:#718096;cursor:pointer;z-index:10;background:#f7fafc;
-      border-radius:3px;padding:0 2px;border:1px solid #e2e8f0;}
+      border-radius:3px;padding:1px 3px;border:1px solid #e2e8f0;}
+    .memo-icon:hover{background:#ebf8ff;border-color:#2b6cb0;}
+
     /* 메모 팝업 */
     .memo-modal-overlay{display:none;position:fixed;inset:0;
       background:rgba(0,0,0,.45);z-index:400;align-items:center;justify-content:center;}
@@ -180,12 +177,42 @@
     .memo-modal-btns{display:flex;justify-content:flex-end;}
     .memo-close-btn{padding:8px 20px;background:#2b6cb0;color:#fff;
       border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;}
+
+    /* ★ 모바일 근무 상세 팝업 */
+    .shift-popup-overlay{display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.45);z-index:350;align-items:flex-end;justify-content:center;}
+    .shift-popup-overlay.open{display:flex;}
+    .shift-popup{background:#fff;border-radius:14px 14px 0 0;padding:20px;
+      width:100%;max-width:500px;box-shadow:0 -4px 20px rgba(0,0,0,.2);
+      max-height:60vh;overflow-y:auto;}
+    .shift-popup-header{display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:14px;border-bottom:2px solid #e2e8f0;padding-bottom:10px;}
+    .shift-popup-header h4{font-size:1rem;color:#2b6cb0;font-weight:700;}
+    .shift-popup-close{background:none;border:none;font-size:1.2rem;
+      cursor:pointer;color:#718096;padding:4px;}
+    .shift-popup-row{display:flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:8px;margin-bottom:6px;}
+    .shift-popup-row.row-am   {background:#dbeafe;}
+    .shift-popup-row.row-pm   {background:#dcfce7;}
+    .shift-popup-row.row-night{background:#ede9fe;}
+    .shift-popup-label{font-weight:700;font-size:.88rem;min-width:32px;}
+    .shift-popup-label.am   {color:#1d4ed8;}
+    .shift-popup-label.pm   {color:#15803d;}
+    .shift-popup-label.night{color:#6d28d9;}
+    .shift-popup-name{font-weight:700;font-size:.88rem;color:#1a202c;flex:1;}
+    .shift-popup-time{font-size:.82rem;color:#4a5568;}
+    .shift-popup-ext{font-size:.78rem;font-weight:700;color:#b45309;
+      background:#fef3c7;border-radius:3px;padding:1px 6px;}
+    .shift-popup-events{margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:10px;}
+    .shift-popup-events .badge{font-size:.82rem;padding:3px 8px;margin:2px;}
+
     /* 범례 */
-    .legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
-      padding:8px 12px;background:#fff;border-top:1px solid #e2e8f0;
-      font-size:.72rem;align-items:center;}
-    .legend-item{display:flex;align-items:center;gap:3px;color:#4a5568;}
-    .legend-box{width:10px;height:10px;border-radius:2px;border:1px solid #e2e8f0;flex-shrink:0;}
+    .legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+      padding:10px 24px;background:#fff;border-top:1px solid #e2e8f0;
+      font-size:.78rem;align-items:center;}
+    .legend-item{display:flex;align-items:center;gap:4px;color:#4a5568;}
+    .legend-box{width:12px;height:12px;border-radius:3px;border:1px solid #e2e8f0;flex-shrink:0;}
+
     /* 통계 */
     .stats-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
       z-index:300;align-items:center;justify-content:center;}
@@ -207,6 +234,7 @@
     .stats-table td{border:1px solid #e2e8f0;padding:8px 10px;text-align:center;}
     .stats-table tr:nth-child(even) td{background:#f7fafc;}
     .stats-table .name-cell{font-weight:700;text-align:left;color:#2b6cb0;padding-left:10px;}
+
     /* 편집 모달 */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
       z-index:200;align-items:center;justify-content:center;}
@@ -265,21 +293,31 @@
     .cancel-btn{background:#e2e8f0;color:#2d3748;}
     .edit-section{display:none;}
     .edit-section.show{display:block;}
-    /* ★ 모바일 최적화 */
+
+    /* ══ 모바일 최적화 ══ */
     @media (max-width: 768px) {
       .calendar-wrap{padding:4px;}
-      td{height:72px;max-height:72px;overflow:hidden;padding:3px;}
+      /* ★ 모바일 셀 고정 */
+      td{height:72px;max-height:72px;overflow:hidden;padding:2px 3px;}
+      table{min-width:0;}
+      thead th{font-size:.7rem;padding:6px 0;}
+      .date-num{font-size:.8rem;margin-bottom:1px;}
+      .holiday-label{font-size:.55rem;}
+      .off-label{font-size:.75rem;height:45px;}
+      .special-tag{font-size:.58rem;padding:1px 3px;}
+
+      /* ★ 모바일 근무 표시 - 이름만 작게 */
+      .cell-shift-row{padding:1px 3px;margin-bottom:1px;border-radius:3px;
+        cursor:pointer;}
+      .cell-shift-label{font-size:.62rem;min-width:18px;}
+      .cell-shift-name{font-size:.68rem;font-weight:700;}
+      /* 모바일에서 시간/연장 숨김 → 클릭시 팝업으로 */
       .cell-shift-time{display:none;}
       .cell-shift-ext{display:none;}
-      .cell-shift-row{margin-bottom:1px;padding:1px 2px;}
-      .cell-shift-label{font-size:.58rem;min-width:16px;}
-      .cell-shift-name{font-size:.62rem;max-width:38px;}
-      .date-num{font-size:.78rem;}
-      .holiday-label{font-size:.55rem;}
-      .badge{font-size:.55rem;padding:0 2px;}
-      .special-tag{font-size:.55rem;}
-      .off-label{font-size:.72rem;height:45px;}
-      thead th{font-size:.7rem;padding:5px 0;}
+
+      .badge{font-size:.58rem;padding:0 3px;}
+      .cell-event-area{margin-top:1px;padding-top:1px;}
+
       .nav select{font-size:.8rem;padding:4px 6px;}
       .nav button{padding:4px 10px;font-size:.9rem;}
       .modal{width:100%;border-radius:10px 10px 0 0;
@@ -291,10 +329,11 @@
       header h1{font-size:1.1rem;}
       header p{font-size:.75rem;}
     }
+
     @media print{
       .controls,.nav button,.member-config,.legend,.modal-overlay,
       .holiday-status,.user-bar,.sync-status,.pin-overlay,.edit-locked,
-      .stats-overlay,.memo-modal-overlay{display:none!important;}
+      .stats-overlay,.memo-modal-overlay,.shift-popup-overlay{display:none!important;}
       body{background:#fff;}
       .calendar-wrap{padding:4px;}
       td{height:90px;max-height:none;overflow:visible;}
@@ -402,7 +441,7 @@
   <div class="legend-item"><div class="legend-box" style="background:#dbeafe;"></div>오전</div>
   <div class="legend-item"><div class="legend-box" style="background:#dcfce7;"></div>오후</div>
   <div class="legend-item"><div class="legend-box" style="background:#ede9fe;"></div>야간</div>
-  <div class="legend-item"><div class="legend-box" style="background:#fef3c7;"></div>연장</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fef3c7;"></div>연장(+h)</div>
   <div class="legend-item"><div class="legend-box" style="background:#fed7d7;"></div>연차</div>
   <div class="legend-item"><div class="legend-box" style="background:#fbd38d;"></div>시간차</div>
   <div class="legend-item"><div class="legend-box" style="background:#fce4ec;"></div>가족사랑</div>
@@ -410,6 +449,7 @@
   <div class="legend-item"><div class="legend-box" style="background:#ffebee;"></div>단체연차</div>
   <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div>교육</div>
   <div class="legend-item">📌 메모</div>
+  <div class="legend-item" style="color:#2b6cb0;font-size:.75rem;">📱 모바일: 날짜 탭 → 상세보기</div>
 </div>
 
 <!-- 메모 팝업 -->
@@ -423,6 +463,17 @@
     <div class="memo-modal-btns">
       <button class="memo-close-btn" onclick="closeMemoModal()">닫기</button>
     </div>
+  </div>
+</div>
+
+<!-- ★ 모바일 근무 상세 팝업 -->
+<div class="shift-popup-overlay" id="shiftPopupOverlay">
+  <div class="shift-popup">
+    <div class="shift-popup-header">
+      <h4 id="shiftPopupTitle">📅 근무 상세</h4>
+      <button class="shift-popup-close" onclick="closeShiftPopup()">✕</button>
+    </div>
+    <div id="shiftPopupContent"></div>
   </div>
 </div>
 
@@ -537,6 +588,8 @@ const BADGE_LABEL = {
   'fitness':'체력단련','groupoff':'단체연차','edu':'교육','special':'설비/기타',
 };
 const SHIFT_ORDER = {am:0, pm:1, night:2};
+const SHIFT_LABEL_MAP = {am:'오전', pm:'오후', night:'야간'};
+const ROW_CLS = {am:'row-am', pm:'row-pm', night:'row-night'};
 
 // ══════════════════════════════════════
 //  상태
@@ -552,6 +605,9 @@ let overrides = {};
 let modalKey  = null;
 let modalDate = null;
 let currentDayType = 'normal';
+
+// 모바일 판별
+function isMobile() { return window.innerWidth <= 768; }
 
 // ══════════════════════════════════════
 //  수당 계산
@@ -847,67 +903,102 @@ function isHolidayDate(date) {
 }
 
 // ══════════════════════════════════════
-//  주차 복사
+//  ★ 모바일 근무 상세 팝업
 // ══════════════════════════════════════
-async function applyWeekCopy() {
-  if(!modalKey||!modalDate) return;
-  const srcData = collectModalData();
-  if(!srcData) return;
-  const dow = modalDate.getDay();
-  const monday = new Date(modalDate);
-  monday.setDate(modalDate.getDate() + (dow===0?-6:1-dow));
-  const targets = [];
-  for(let i=0; i<5; i++){
-    const d = new Date(monday);
-    d.setDate(monday.getDate()+i);
-    const key = toKey(d);
-    if(key===modalKey) continue;
-    if(isHolidayDate(d)) continue;
-    targets.push({date:d, key});
+function openShiftPopup(dateLabel, dayType, ov) {
+  document.getElementById('shiftPopupTitle').textContent = `📅 ${dateLabel}`;
+  const content = document.getElementById('shiftPopupContent');
+  content.innerHTML = '';
+
+  if(dayType==='off'){
+    content.innerHTML = '<div style="text-align:center;padding:20px;color:#a0aec0;font-size:1rem;">🔘 휴무일</div>';
+    document.getElementById('shiftPopupOverlay').classList.add('open');
+    return;
   }
-  if(targets.length===0){ alert('적용할 수 있는 평일이 없습니다!'); return; }
-  const hasData = targets.filter(t=>overrides[t.key]);
-  const noData  = targets.filter(t=>!overrides[t.key]);
-  if(hasData.length>0){
-    const dateList = hasData.map(t => `${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
-    const msg = `이미 데이터가 있는 날짜:\n${dateList}\n\n덮어쓰시겠습니까?\n\n[확인] 모두 덮어쓰기\n[취소] 건너뛰기`;
-    const overwrite = confirm(msg);
-    if(overwrite){
-      targets.forEach(t=>{ overrides[t.key] = JSON.parse(JSON.stringify(srcData)); });
-    } else {
-      noData.forEach(t=>{ overrides[t.key] = JSON.parse(JSON.stringify(srcData)); });
-      if(noData.length===0){ alert('건너뛸 날짜만 있어서 적용된 날짜가 없습니다.'); return; }
+
+  if(dayType==='special'){
+    const st = document.createElement('div');
+    st.style.cssText='display:inline-block;font-size:.82rem;background:#f6e05e;color:#744210;border-radius:4px;padding:3px 8px;font-weight:700;margin-bottom:10px;';
+    st.textContent='⭐ 특근';
+    content.appendChild(st);
+  }
+
+  if(ov && ov.shifts){
+    const shifts = ov.shifts;
+    const shiftEntries = Object.entries(shifts)
+      .filter(([,s])=>s&&s.type&&s.type!=='none')
+      .sort((a,b)=>(SHIFT_ORDER[a[1].type]??3)-(SHIFT_ORDER[b[1].type]??3));
+
+    shiftEntries.forEach(([name,s])=>{
+      const row = document.createElement('div');
+      row.className = `shift-popup-row ${ROW_CLS[s.type]||''}`;
+      const lbl = document.createElement('span');
+      lbl.className = `shift-popup-label ${s.type}`;
+      lbl.textContent = SHIFT_LABEL_MAP[s.type]||s.type;
+      const nm = document.createElement('span');
+      nm.className = 'shift-popup-name'; nm.textContent = name;
+      const tm = document.createElement('span');
+      tm.className = 'shift-popup-time';
+      const eDisp = s.endH>=24 ? s.endH-24+'(익일)' : s.endH;
+      tm.textContent = `${s.startH}시~${eDisp}시`;
+      row.appendChild(lbl); row.appendChild(nm); row.appendChild(tm);
+      const extH = getExtHours(s.startH, s.endH, dayType);
+      if(extH>0){
+        const ext = document.createElement('span');
+        ext.className = 'shift-popup-ext';
+        ext.textContent = `+${Math.round(extH*10)/10}h`;
+        row.appendChild(ext);
+      }
+      content.appendChild(row);
+    });
+  } else if(!ov) {
+    content.innerHTML = '<div style="text-align:center;padding:10px;color:#718096;font-size:.9rem;">근무 정보 없음</div>';
+  }
+
+  // 이벤트
+  if(ov && ov.events){
+    const evEntries = Object.entries(ov.events).filter(([,v])=>v&&v.type&&v.type!=='none');
+    if(evEntries.length>0){
+      const evDiv = document.createElement('div');
+      evDiv.className = 'shift-popup-events';
+      const evTitle = document.createElement('div');
+      evTitle.style.cssText='font-size:.82rem;font-weight:700;color:#2b6cb0;margin-bottom:6px;';
+      evTitle.textContent = '🏖️ 휴가/이벤트';
+      evDiv.appendChild(evTitle);
+      evEntries.forEach(([name,ev])=>{
+        const b = document.createElement('span');
+        b.className = `badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
+        let txt = `${BADGE_LABEL[ev.type]||ev.type} ${name}`;
+        if(ev.type==='timeleave'&&ev.hours) txt += ` ${ev.hours}h`;
+        b.textContent = txt; evDiv.appendChild(b);
+      });
+      content.appendChild(evDiv);
     }
-  } else {
-    targets.forEach(t=>{ overrides[t.key] = JSON.parse(JSON.stringify(srcData)); });
   }
-  closeModal();
-  saveToFirebase();
-  alert(`✅ 주차 근무가 적용되었습니다!`);
+
+  // 메모
+  if(ov && ov.memo){
+    const memoDiv = document.createElement('div');
+    memoDiv.style.cssText='margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:10px;';
+    const memoTitle = document.createElement('div');
+    memoTitle.style.cssText='font-size:.82rem;font-weight:700;color:#2b6cb0;margin-bottom:6px;';
+    memoTitle.textContent = '📌 메모';
+    const memoBody = document.createElement('div');
+    memoBody.style.cssText='font-size:.85rem;color:#2d3748;white-space:pre-wrap;background:#f7fafc;border-radius:8px;padding:10px;';
+    memoBody.textContent = ov.memo;
+    memoDiv.appendChild(memoTitle); memoDiv.appendChild(memoBody);
+    content.appendChild(memoDiv);
+  }
+
+  document.getElementById('shiftPopupOverlay').classList.add('open');
 }
 
-function collectModalData() {
-  const shifts={};
-  members.forEach(name=>{
-    const type=document.getElementById('stype_'+name)?.value||'none';
-    if(type==='none') return;
-    shifts[name]={
-      type,
-      startH:parseFloat(document.getElementById('sstart_'+name)?.value),
-      endH:  parseFloat(document.getElementById('send_'+name)?.value),
-    };
-  });
-  const events={};
-  members.forEach(name=>{
-    const type=document.getElementById('ev_'+name)?.value||'none';
-    if(type==='none') return;
-    const hours=type==='timeleave'
-      ?parseFloat(document.getElementById('tlh_'+name)?.value||4):null;
-    events[name]={type,hours};
-  });
-  const memo=document.getElementById('memoInput').value.trim();
-  return { dayType:currentDayType, shifts, events, memo };
+function closeShiftPopup() {
+  document.getElementById('shiftPopupOverlay').classList.remove('open');
 }
+document.getElementById('shiftPopupOverlay').addEventListener('click', function(e){
+  if(e.target===this) closeShiftPopup();
+});
 
 // ══════════════════════════════════════
 //  달력 셀 렌더링
@@ -922,12 +1013,12 @@ function renderCellContent(td, dayType, ov) {
     td.appendChild(st);
   }
   if(!ov) return;
+
   const shifts=ov.shifts||{};
   const shiftEntries=Object.entries(shifts)
     .filter(([,s])=>s&&s.type&&s.type!=='none')
     .sort((a,b)=>(SHIFT_ORDER[a[1].type]??3)-(SHIFT_ORDER[b[1].type]??3));
-  const SHIFT_LABEL_MAP={am:'오전',pm:'오후',night:'야간'};
-  const ROW_CLS={am:'row-am',pm:'row-pm',night:'row-night'};
+
   shiftEntries.forEach(([name,s])=>{
     const row=document.createElement('div');
     row.className = `cell-shift-row ${ROW_CLS[s.type]||''}`;
@@ -947,6 +1038,7 @@ function renderCellContent(td, dayType, ov) {
     }
     td.appendChild(row);
   });
+
   const events=ov.events||{};
   const evEntries=Object.entries(events).filter(([,v])=>v&&v.type&&v.type!=='none');
   if(evEntries.length>0){
@@ -998,14 +1090,17 @@ function renderCalendar() {
       if(col===0) td.classList.add('sunday');
       if(col===6) td.classList.add('saturday');
       if(cellDate.toDateString()===today.toDateString()) td.classList.add('today');
+
       const key=toKey(cellDate);
       const ov=overrides[key];
       const dayType=ov?ov.dayType:getDefaultDayType(cellDate);
+
       if(!td.classList.contains('other-month')){
         td.classList.add(
           dayType==='off'?'day-off':dayType==='special'?'day-special':'day-normal'
         );
       }
+
       const numDiv=document.createElement('div'); numDiv.className='date-num';
       numDiv.textContent=cellDate.getDate();
       if(ov){
@@ -1013,12 +1108,16 @@ function renderCalendar() {
         numDiv.appendChild(m);
       }
       td.appendChild(numDiv);
+
       const holiday=getHoliday(key);
       if(holiday){
         const hl=document.createElement('div'); hl.className='holiday-label';
         hl.textContent='🎌 '+holiday; td.appendChild(hl);
       }
+
       if(!td.classList.contains('other-month')) renderCellContent(td,dayType,ov);
+
+      // 메모 아이콘
       if(ov&&ov.memo){
         const dateLabel = `${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
         const icon=document.createElement('div'); icon.className='memo-icon'; icon.textContent='📌';
@@ -1027,16 +1126,46 @@ function renderCalendar() {
         });
         td.appendChild(icon);
       }
+
       if(isCurrent){
         td.addEventListener('click',()=>{
-          if(!isAdmin){
-            const locked=document.getElementById('editLocked');
-            locked.classList.add('show');
-            setTimeout(()=>locked.classList.remove('show'),2000);
-            return;
+          if(isMobile()){
+            // ★ 모바일: 클릭 시 상세 팝업
+            const dateLabel = `${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
+            if(isAdmin){
+              // 관리자: 길게 누르면 편집, 짧게 누르면 상세보기
+              openModal(key, cellDate);
+            } else {
+              openShiftPopup(dateLabel, dayType, ov);
+            }
+          } else {
+            // PC: 기존 동작
+            if(!isAdmin){
+              const locked=document.getElementById('editLocked');
+              locked.classList.add('show');
+              setTimeout(()=>locked.classList.remove('show'),2000);
+              return;
+            }
+            openModal(key,cellDate);
           }
-          openModal(key,cellDate);
         });
+
+        // ★ 모바일 관리자: 길게 누르면 상세보기, 짧게 누르면 편집
+        if(isMobile() && isAdmin){
+          let pressTimer;
+          td.addEventListener('touchstart', e=>{
+            pressTimer = setTimeout(()=>{
+              const dateLabel = `${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
+              openShiftPopup(dateLabel, dayType, ov);
+            }, 500);
+          });
+          td.addEventListener('touchend', ()=>{
+            clearTimeout(pressTimer);
+          });
+          td.addEventListener('touchmove', ()=>{
+            clearTimeout(pressTimer);
+          });
+        }
       }
       tr.appendChild(td);
     }
@@ -1265,6 +1394,70 @@ function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
   modalKey=null; modalDate=null;
 }
+
+// ══════════════════════════════════════
+//  주차 복사
+// ══════════════════════════════════════
+async function applyWeekCopy() {
+  if(!modalKey||!modalDate) return;
+  const srcData = collectModalData();
+  if(!srcData) return;
+  const dow = modalDate.getDay();
+  const monday = new Date(modalDate);
+  monday.setDate(modalDate.getDate() + (dow===0?-6:1-dow));
+  const targets = [];
+  for(let i=0; i<5; i++){
+    const d = new Date(monday);
+    d.setDate(monday.getDate()+i);
+    const key = toKey(d);
+    if(key===modalKey) continue;
+    if(isHolidayDate(d)) continue;
+    targets.push({date:d, key});
+  }
+  if(targets.length===0){ alert('적용할 수 있는 평일이 없습니다!'); return; }
+  const hasData = targets.filter(t=>overrides[t.key]);
+  const noData  = targets.filter(t=>!overrides[t.key]);
+  if(hasData.length>0){
+    const dateList = hasData.map(t => `${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
+    const msg = `이미 데이터가 있는 날짜:\n${dateList}\n\n덮어쓰시겠습니까?\n\n[확인] 모두 덮어쓰기\n[취소] 건너뛰기`;
+    const overwrite = confirm(msg);
+    if(overwrite){
+      targets.forEach(t=>{ overrides[t.key] = JSON.parse(JSON.stringify(srcData)); });
+    } else {
+      noData.forEach(t=>{ overrides[t.key] = JSON.parse(JSON.stringify(srcData)); });
+      if(noData.length===0){ alert('건너뛸 날짜만 있어서 적용된 날짜가 없습니다.'); return; }
+    }
+  } else {
+    targets.forEach(t=>{ overrides[t.key] = JSON.parse(JSON.stringify(srcData)); });
+  }
+  closeModal();
+  saveToFirebase();
+  alert(`✅ 주차 근무가 적용되었습니다!`);
+}
+
+function collectModalData() {
+  const shifts={};
+  members.forEach(name=>{
+    const type=document.getElementById('stype_'+name)?.value||'none';
+    if(type==='none') return;
+    shifts[name]={
+      type,
+      startH:parseFloat(document.getElementById('sstart_'+name)?.value),
+      endH:  parseFloat(document.getElementById('send_'+name)?.value),
+    };
+  });
+  const events={};
+  members.forEach(name=>{
+    const type=document.getElementById('ev_'+name)?.value||'none';
+    if(type==='none') return;
+    const hours=type==='timeleave'
+      ?parseFloat(document.getElementById('tlh_'+name)?.value||4):null;
+    events[name]={type,hours};
+  });
+  const memo=document.getElementById('memoInput').value.trim();
+  return { dayType:currentDayType, shifts, events, memo };
+}
+
 function saveDay() {
   if(currentDayType==='off'){
     const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
@@ -1284,7 +1477,7 @@ function resetDay() {
 }
 
 // ══════════════════════════════════════
-//  PWA Service Worker
+//  PWA
 // ══════════════════════════════════════
 if('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
