@@ -914,11 +914,14 @@ function closeShiftPopup(){
 
 // ★ 수정하기 버튼 클릭
 function goToEdit(){
+  // ★ 키/날짜 먼저 저장 후 팝업 닫기
+  const key = popupKey;
+  const date = popupDate;
   closeShiftPopup();
-  if(popupKey&&popupDate){
-    openModal(popupKey,popupDate);
+  if(key && date){
+    openModal(key, date);
   }
-}
+}  
 
 document.getElementById('shiftPopupOverlay').addEventListener('click',function(e){
   if(e.target===this)closeShiftPopup();
