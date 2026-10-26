@@ -173,7 +173,6 @@
     .memo-modal-btns{display:flex;justify-content:flex-end;}
     .memo-close-btn{padding:8px 20px;background:#2b6cb0;color:#fff;
       border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;}
-    /* ★ 모바일 근무 상세 팝업 */
     .shift-popup-overlay{display:none;position:fixed;inset:0;
       background:rgba(0,0,0,.45);z-index:350;align-items:flex-end;justify-content:center;}
     .shift-popup-overlay.open{display:flex;}
@@ -200,7 +199,6 @@
       background:#fef3c7;border-radius:3px;padding:1px 6px;}
     .shift-popup-events{margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:10px;}
     .shift-popup-events .badge{font-size:.82rem;padding:3px 8px;margin:2px;}
-    /* ★ 수정하기 버튼 */
     .shift-popup-edit-btn{width:100%;padding:12px;background:#2b6cb0;color:#fff;
       border:none;border-radius:10px;cursor:pointer;font-size:.92rem;font-weight:700;
       margin-top:14px;transition:all .15s;}
@@ -287,7 +285,6 @@
     .cancel-btn{background:#e2e8f0;color:#2d3748;}
     .edit-section{display:none;}
     .edit-section.show{display:block;}
-    /* ══ 모바일 최적화 ══ */
     @media (max-width: 768px) {
       .calendar-wrap{padding:4px;}
       td{height:72px;max-height:72px;overflow:hidden;padding:2px 3px;}
@@ -326,8 +323,6 @@
   </style>
 </head>
 <body>
-
-<!-- PIN 오버레이 -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
     <h2>🔐 포장전자 근무달력</h2>
@@ -365,12 +360,10 @@
     </button>
   </div>
 </div>
-
 <header>
   <h1>📅 포장전자 근무달력</h1>
   <p>🔘 휴무 · ⭐ 특근 · ✅ 정상근무 | 실시간 동기화</p>
 </header>
-
 <div class="user-bar" id="userBar">
   <span id="userBarText">🔐 로그인 중...</span>
   <div style="display:flex;gap:8px;align-items:center;">
@@ -378,10 +371,8 @@
     <button class="logout-btn" onclick="logout()">🔒 로그아웃</button>
   </div>
 </div>
-
 <div class="sync-status" id="syncStatus">🔄 연결 중...</div>
 <div class="holiday-status" id="holidayStatus">🔄 공휴일 정보 로딩 중...</div>
-
 <div class="member-config" id="memberConfig">
   <label style="font-weight:700;color:#2b6cb0;">👑 팀원 관리</label>
   <div class="member-list-wrap" id="memberListWrap"></div>
@@ -394,7 +385,6 @@
   </div>
   <button class="btn btn-blue" onclick="applyConfig()">✅ 적용</button>
 </div>
-
 <div class="controls" id="adminControls" style="display:none;">
   <button class="btn btn-green" onclick="openStats()">📊 통계</button>
   <button class="btn btn-gray"  onclick="window.print()">🖨️ 인쇄</button>
@@ -402,7 +392,6 @@
 <div class="controls" id="guestControls" style="display:none;">
   <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
 </div>
-
 <div class="nav">
   <button onclick="prevMonth()">◀</button>
   <select id="yearSel"  onchange="onNavChange()"></select>
@@ -410,7 +399,6 @@
   <select id="weekSel"  onchange="onWeekChange()"></select>
   <button onclick="nextMonth()">▶</button>
 </div>
-
 <div class="calendar-wrap">
   <table>
     <thead>
@@ -419,7 +407,6 @@
     <tbody id="calBody"></tbody>
   </table>
 </div>
-
 <div class="legend">
   <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div>휴무</div>
   <div class="legend-item"><div class="legend-box" style="background:#fffde7;border-color:#f6e05e;"></div>특근</div>
@@ -435,8 +422,6 @@
   <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div>교육</div>
   <div class="legend-item">📌 메모</div>
 </div>
-
-<!-- 메모 팝업 -->
 <div class="memo-modal-overlay" id="memoModalOverlay">
   <div class="memo-modal">
     <div class="memo-modal-header">
@@ -449,8 +434,6 @@
     </div>
   </div>
 </div>
-
-<!-- ★ 모바일 근무 상세 팝업 (관리자/게스트 공통) -->
 <div class="shift-popup-overlay" id="shiftPopupOverlay">
   <div class="shift-popup">
     <div class="shift-popup-header">
@@ -458,15 +441,12 @@
       <button class="shift-popup-close" onclick="closeShiftPopup()">✕</button>
     </div>
     <div id="shiftPopupContent"></div>
-    <!-- ★ 관리자만 보이는 수정하기 버튼 -->
     <button class="shift-popup-edit-btn" id="shiftPopupEditBtn"
       style="display:none;" onclick="goToEdit()">
       ✏️ 수정하기
     </button>
   </div>
 </div>
-
-<!-- 통계 모달 -->
 <div class="stats-overlay" id="statsOverlay">
   <div class="stats-modal">
     <h3>📊 근무 통계
@@ -478,8 +458,6 @@
     </div>
   </div>
 </div>
-
-<!-- 편집 모달 -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <h3 id="modalTitle">근무 편집</h3>
@@ -524,7 +502,6 @@
     </div>
   </div>
 </div>
-
 <div class="edit-locked" id="editLocked">🔒 관리자 로그인 후 수정 가능합니다</div>
 
 <script>
@@ -539,7 +516,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
 let ADMIN_PIN = '1234';
 const SHIFT_TYPE_OPTS = [
   {value:'none',label:'없음'},{value:'am',label:'오전'},
@@ -563,12 +539,10 @@ const BADGE_LABEL = {
 const SHIFT_ORDER = {am:0,pm:1,night:2};
 const SHIFT_LABEL_MAP = {am:'오전',pm:'오후',night:'야간'};
 const ROW_CLS = {am:'row-am',pm:'row-pm',night:'row-night'};
-
 let isAdmin=false, isViewOnly=false, pinValue='';
 let currentYear=new Date().getFullYear(), currentMonth=new Date().getMonth(), currentWeek=0;
 let members=['팀원1','팀원2','팀원3'];
 let overrides={}, modalKey=null, modalDate=null, currentDayType='normal';
-// ★ 팝업에서 수정하기 클릭 시 사용할 키/날짜 저장
 let popupKey=null, popupDate=null;
 
 function isMobile(){ return window.innerWidth<=768; }
@@ -653,7 +627,6 @@ function showGuestUI(){
   document.getElementById('guestControls').style.display='flex';
   document.getElementById('statsBtn').style.display='none';
 }
-
 function saveAdminPin(){
   const newPin=document.getElementById('adminPinInput').value.trim();
   if(newPin.length!==4||!/^\d{4}$/.test(newPin)){alert('PIN은 숫자 4자리여야 합니다!');return;}
@@ -662,7 +635,6 @@ function saveAdminPin(){
   document.getElementById('adminPinInput').value='';
   alert('✅ 관리자 PIN이 변경되었습니다!');
 }
-
 function renderMemberConfig(){
   const wrap=document.getElementById('memberListWrap');wrap.innerHTML='';
   members.forEach((name,i)=>{
@@ -702,14 +674,17 @@ async function fetchHolidays(year){
   if(holidayCache[year])return holidayCache[year];
   const statusEl=document.getElementById('holidayStatus');
   try{
-    statusEl.textContent=`🔄 ${year}년 공휴일 불러오는 중...`;
+    // ★ 수정: textContent = `...`
+    statusEl.textContent = `🔄 ${year}년 공휴일 불러오는 중...`;
     const holidays={},promises=[];
     for(let m=1;m<=12;m++){
-      const url=`https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
+      // ★ 수정: const url = `...`
+      const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
       promises.push(fetch(url).then(r=>r.json()).then(data=>{
         const items=data?.response?.body?.items?.item;if(!items)return;
         (Array.isArray(items)?items:[items]).forEach(item=>{
           const d=String(item.locdate);
+          // ★ 수정: holidays[`...`] = ...
           holidays[`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`]=item.dateName;
         });
       }).catch(()=>{}));
@@ -717,13 +692,15 @@ async function fetchHolidays(year){
     await Promise.all(promises);
     if(!Object.keys(holidays).length)throw new Error();
     holidayCache[year]=holidays;
-    statusEl.textContent=`✅ ${year}년 공휴일 업데이트 완료!`;
+    // ★ 수정
+    statusEl.textContent = `✅ ${year}년 공휴일 업데이트 완료!`;
     statusEl.className='holiday-status success';
     setTimeout(()=>{statusEl.style.display='none';},3000);
     return holidayCache[year];
   }catch{
     holidayCache[year]=HOLIDAY_FALLBACK[year]||{};
-    statusEl.textContent=`⚠️ 기본 공휴일 데이터 사용`;
+    // ★ 수정
+    statusEl.textContent = `⚠️ 기본 공휴일 데이터 사용`;
     statusEl.className='holiday-status error';
     return holidayCache[year];
   }
@@ -775,7 +752,8 @@ function refreshWeekSel(){
   sel.appendChild(all);
   getWeeksOfMonth(currentYear,currentMonth).forEach((w,i)=>{
     const o=document.createElement('option');o.value=i+1;
-    o.textContent=`${i+1}주차 (${w.start.getDate()}일~${w.end.getDate()}일)`;
+    // ★ 수정: o.textContent = `...`
+    o.textContent = `${i+1}주차 (${w.start.getDate()}일~${w.end.getDate()}일)`;
     sel.appendChild(o);
   });
   sel.value=currentWeek;
@@ -813,8 +791,9 @@ function nextMonth(){
   fetchHolidays(currentYear).then(()=>{refreshWeekSel();renderCalendar();});
 }
 
+// ★ 수정: return `...`
 function toKey(d){
-  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function getDefaultDayType(date){
   const dow=date.getDay(),key=toKey(date);
@@ -826,22 +805,15 @@ function isHolidayDate(date){
   return dow===0||dow===6||!!getHoliday(key);
 }
 
-// ══════════════════════════════════════
-//  ★ 모바일 상세 팝업 (관리자/게스트 공통)
-// ══════════════════════════════════════
-function openShiftPopup(key, date, dayType, ov){
-  popupKey = key;
-  popupDate = date;
+function openShiftPopup(key,date,dayType,ov){
+  popupKey=key;
+  popupDate=date;
   const dateLabel = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
   document.getElementById('shiftPopupTitle').textContent = `📅 ${dateLabel}`;
-
-  // 관리자면 수정 버튼 표시
-  const editBtn = document.getElementById('shiftPopupEditBtn');
-  editBtn.style.display = isAdmin ? 'block' : 'none';
-
-  const content = document.getElementById('shiftPopupContent');
-  content.innerHTML = '';
-
+  const editBtn=document.getElementById('shiftPopupEditBtn');
+  editBtn.style.display=isAdmin?'block':'none';
+  const content=document.getElementById('shiftPopupContent');
+  content.innerHTML='';
   if(dayType==='off'){
     content.innerHTML='<div style="text-align:center;padding:20px;color:#a0aec0;font-size:1rem;">🔘 휴무일</div>';
     document.getElementById('shiftPopupOverlay').classList.add('open');
@@ -858,19 +830,24 @@ function openShiftPopup(key, date, dayType, ov){
       .sort((a,b)=>(SHIFT_ORDER[a[1].type]??3)-(SHIFT_ORDER[b[1].type]??3));
     shiftEntries.forEach(([name,s])=>{
       const row=document.createElement('div');
-      row.className=`shift-popup-row ${ROW_CLS[s.type]||''}`;
+      // ★ 수정: row.className = `...`
+      row.className = `shift-popup-row ${ROW_CLS[s.type]||''}`;
       const lbl=document.createElement('span');
-      lbl.className=`shift-popup-label ${s.type}`;
+      // ★ 수정: lbl.className = `...`
+      lbl.className = `shift-popup-label ${s.type}`;
       lbl.textContent=SHIFT_LABEL_MAP[s.type]||s.type;
       const nm=document.createElement('span');nm.className='shift-popup-name';nm.textContent=name;
       const tm=document.createElement('span');tm.className='shift-popup-time';
       const eDisp=s.endH>=24?s.endH-24+'(익일)':s.endH;
-      tm.textContent=`${s.startH}시~${eDisp}시`;
+      // ★ 수정: tm.textContent = `...`
+      tm.textContent = `${s.startH}시~${eDisp}시`;
       row.appendChild(lbl);row.appendChild(nm);row.appendChild(tm);
       const extH=getExtHours(s.startH,s.endH,dayType);
       if(extH>0){
         const ext=document.createElement('span');ext.className='shift-popup-ext';
-        ext.textContent=`+${Math.round(extH*10)/10}h`;row.appendChild(ext);
+        // ★ 수정: ext.textContent = `...`
+        ext.textContent = `+${Math.round(extH*10)/10}h`;
+        row.appendChild(ext);
       }
       content.appendChild(row);
     });
@@ -886,9 +863,12 @@ function openShiftPopup(key, date, dayType, ov){
       evTitle.textContent='🏖️ 휴가/이벤트';evDiv.appendChild(evTitle);
       evEntries.forEach(([name,ev])=>{
         const b=document.createElement('span');
-        b.className=`badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
-        let txt=`${BADGE_LABEL[ev.type]||ev.type} ${name}`;
-        if(ev.type==='timeleave'&&ev.hours)txt+=` ${ev.hours}h`;
+        // ★ 수정: b.className = `...`
+        b.className = `badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
+        // ★ 수정: let txt = `...`
+        let txt = `${BADGE_LABEL[ev.type]||ev.type} ${name}`;
+        // ★ 수정: txt += `...`
+        if(ev.type==='timeleave'&&ev.hours) txt += ` ${ev.hours}h`;
         b.textContent=txt;evDiv.appendChild(b);
       });
       content.appendChild(evDiv);
@@ -908,23 +888,16 @@ function openShiftPopup(key, date, dayType, ov){
   }
   document.getElementById('shiftPopupOverlay').classList.add('open');
 }
-
 function closeShiftPopup(){
   document.getElementById('shiftPopupOverlay').classList.remove('open');
   popupKey=null;popupDate=null;
 }
-
-// ★ 수정하기 버튼 클릭
 function goToEdit(){
-  // ★ 키/날짜 먼저 저장 후 팝업 닫기
-  const key = popupKey;
-  const date = popupDate;
+  const key=popupKey;
+  const date=popupDate;
   closeShiftPopup();
-  if(key && date){
-    openModal(key, date);
-  }
-}  
-
+  if(key&&date){ openModal(key,date); }
+}
 document.getElementById('shiftPopupOverlay').addEventListener('click',function(e){
   if(e.target===this)closeShiftPopup();
 });
@@ -945,18 +918,24 @@ function renderCellContent(td,dayType,ov){
     .sort((a,b)=>(SHIFT_ORDER[a[1].type]??3)-(SHIFT_ORDER[b[1].type]??3));
   shiftEntries.forEach(([name,s])=>{
     const row=document.createElement('div');
-    row.className=`cell-shift-row ${ROW_CLS[s.type]||''}`;
+    // ★ 수정: row.className = `...`
+    row.className = `cell-shift-row ${ROW_CLS[s.type]||''}`;
     const lbl=document.createElement('span');
-    lbl.className=`cell-shift-label ${s.type}`;lbl.textContent=SHIFT_LABEL_MAP[s.type]||s.type;
+    // ★ 수정: lbl.className = `...`
+    lbl.className = `cell-shift-label ${s.type}`;
+    lbl.textContent=SHIFT_LABEL_MAP[s.type]||s.type;
     const nm=document.createElement('span');nm.className='cell-shift-name';nm.textContent=name;
     const tm=document.createElement('span');tm.className='cell-shift-time';
     const eDisp=s.endH>=24?s.endH-24+'(익)':s.endH;
-    tm.textContent=` ${s.startH}~${eDisp}`;
+    // ★ 수정: tm.textContent = `...`
+    tm.textContent = ` ${s.startH}~${eDisp}`;
     row.appendChild(lbl);row.appendChild(nm);row.appendChild(tm);
     const extH=getExtHours(s.startH,s.endH,dayType);
     if(extH>0){
       const ext=document.createElement('span');ext.className='cell-shift-ext';
-      ext.textContent=`+${Math.round(extH*10)/10}h`;row.appendChild(ext);
+      // ★ 수정: ext.textContent = `...`
+      ext.textContent = `+${Math.round(extH*10)/10}h`;
+      row.appendChild(ext);
     }
     td.appendChild(row);
   });
@@ -966,9 +945,12 @@ function renderCellContent(td,dayType,ov){
     const ea=document.createElement('div');ea.className='cell-event-area';
     evEntries.forEach(([name,ev])=>{
       const b=document.createElement('span');
-      b.className=`badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
-      let txt=`${BADGE_LABEL[ev.type]||ev.type} ${name}`;
-      if(ev.type==='timeleave'&&ev.hours)txt+=` ${ev.hours}h`;
+      // ★ 수정: b.className = `...`
+      b.className = `badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
+      // ★ 수정: let txt = `...`
+      let txt = `${BADGE_LABEL[ev.type]||ev.type} ${name}`;
+      // ★ 수정: txt += `...`
+      if(ev.type==='timeleave'&&ev.hours) txt += ` ${ev.hours}h`;
       b.textContent=txt;ea.appendChild(b);
     });
     td.appendChild(ea);
@@ -1016,31 +998,34 @@ function renderCalendar(){
       const numDiv=document.createElement('div');numDiv.className='date-num';
       numDiv.textContent=cellDate.getDate();
       if(ov){const m=document.createElement('span');m.className='modified-mark';m.textContent='🔧';numDiv.appendChild(m);}
-      // ★ 메모 아이콘을 numDiv 안으로 이동
-if(ov&&ov.memo){
-  const icon=document.createElement('span');
-  icon.className='memo-icon';icon.textContent='📌';
-  icon.addEventListener('click',e=>{
-    e.stopPropagation();
-    const dateLabel=`${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
-    openMemoModal(ov.memo,dateLabel);
-  });
-  numDiv.appendChild(icon); // ← numDiv로 변경!
-}
-td.appendChild(numDiv);
-const holiday=getHoliday(key);
-if(holiday){
-  const hl=document.createElement('div');hl.className='holiday-label';
-  hl.textContent = '📍 ' + holiday;  // 빨간 핀
-}
-if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
+
+      // ★ 메모 아이콘 numDiv 안에 추가
+      if(ov&&ov.memo){
+        const icon=document.createElement('span');
+        icon.className='memo-icon';icon.textContent='📌';
+        icon.addEventListener('click',e=>{
+          e.stopPropagation();
+          // ★ 수정: const dateLabel = `...`
+          const dateLabel = `${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
+          openMemoModal(ov.memo,dateLabel);
+        });
+        numDiv.appendChild(icon);
+      }
+      td.appendChild(numDiv);
+
+      const holiday=getHoliday(key);
+      if(holiday){
+        const hl=document.createElement('div');hl.className='holiday-label';
+        // ★ 수정: 태극기 이미지
+        hl.innerHTML = '<img src="https://flagcdn.com/w20/kr.png" style="width:12px;height:9px;vertical-align:middle;margin-right:2px;">'+holiday;
+        td.appendChild(hl);
+      }
+      if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
       if(isCurrent){
         td.addEventListener('click',()=>{
           if(isMobile()){
-            // ★ 모바일: 관리자/게스트 모두 상세 팝업 먼저
-            openShiftPopup(key, cellDate, dayType, ov);
+            openShiftPopup(key,cellDate,dayType,ov);
           }else{
-            // PC: 기존 동작
             if(!isAdmin){
               const locked=document.getElementById('editLocked');
               locked.classList.add('show');
@@ -1122,8 +1107,9 @@ function renderStats(){
     });
   });
   let html='';
-  html+=`<div class="stats-section-title">📅 연간 통계 (${year}년)</div>`;
-  html+=`<table class="stats-table"><thead><tr>
+  // ★ 수정: html += `...`
+  html += `<div class="stats-section-title">📅 연간 통계 (${year}년)</div>`;
+  html += `<table class="stats-table"><thead><tr>
     <th style="min-width:60px;">팀원</th>
     <th>연차<br><small>(일)</small></th>
     <th>가족사랑<br><small>(횟수)</small></th>
@@ -1139,14 +1125,17 @@ function renderStats(){
       <td>${s.fitnessCnt>0?s.fitnessCnt+'회':'-'}</td>
     </tr>`;
   });
-  html+=`</tbody></table>`;
-  html+=`<div class="stats-section-title" style="margin-top:20px;">
+  // ★ 수정: html += `...`
+  html += `</tbody></table>`;
+  html += `<div class="stats-section-title" style="margin-top:20px;">
     📆 월별 수당 현황
     <select class="stats-month-sel" id="statsMonthSel" onchange="renderMonthlyTable()">`;
   for(let m=1;m<=12;m++){
-    html+=`<option value="${m}" ${m===currentMonth+1?'selected':''}>${m}월</option>`;
+    // ★ 수정: html += `...`
+    html += `<option value="${m}" ${m===currentMonth+1?'selected':''}>${m}월</option>`;
   }
-  html+=`</select></div><div id="monthlyTableWrap"></div>`;
+  // ★ 수정: html += `...`
+  html += `</select></div><div id="monthlyTableWrap"></div>`;
   document.getElementById('statsContent').innerHTML=html;
   window._monthlyStats=monthlyStats;
   window._statsMembers=[...members];
@@ -1195,7 +1184,7 @@ function openModal(key,date){
   modalKey=key;modalDate=date;
   const existing=overrides[key];
   const initType=existing?existing.dayType:getDefaultDayType(date);
-  document.getElementById('modalTitle').textContent=
+  document.getElementById('modalTitle').textContent =
     `📅 ${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
   selectDayType(initType);
   const container=document.getElementById('shiftMemberRows');container.innerHTML='';
@@ -1260,7 +1249,6 @@ function openModal(key,date){
   document.getElementById('memoInput').value=existing?.memo||'';
   document.getElementById('modalOverlay').classList.add('open');
 }
-
 function closeModal(){
   document.getElementById('modalOverlay').classList.remove('open');
   modalKey=null;modalDate=null;
@@ -1284,8 +1272,10 @@ async function applyWeekCopy(){
   const hasData=targets.filter(t=>overrides[t.key]);
   const noData=targets.filter(t=>!overrides[t.key]);
   if(hasData.length>0){
-    const dateList=hasData.map(t=>`${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
-    const msg=`이미 데이터가 있는 날짜:\n${dateList}\n\n덮어쓰시겠습니까?\n\n[확인] 모두 덮어쓰기\n[취소] 건너뛰기`;
+    // ★ 수정: 화살표 함수 올바르게
+    const dateList=hasData.map(t => `${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
+    // ★ 수정: const msg = `...`
+    const msg = `이미 데이터가 있는 날짜:\n${dateList}\n\n덮어쓰시겠습니까?\n\n[확인] 모두 덮어쓰기\n[취소] 건너뛰기`;
     const overwrite=confirm(msg);
     if(overwrite){
       targets.forEach(t=>{overrides[t.key]=JSON.parse(JSON.stringify(srcData));});
@@ -1297,6 +1287,7 @@ async function applyWeekCopy(){
     targets.forEach(t=>{overrides[t.key]=JSON.parse(JSON.stringify(srcData));});
   }
   closeModal();saveToFirebase();
+  // ★ 수정: alert(`...`)
   alert(`✅ 주차 근무가 적용되었습니다!`);
 }
 
