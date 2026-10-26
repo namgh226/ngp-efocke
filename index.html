@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=2.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>포장전자 근무달력</title>
-  <!-- ★ PWA -->
+  <!-- PWA -->
   <link rel="manifest" href="/ngp-efocke/manifest.json">
   <meta name="theme-color" content="#2b6cb0">
   <meta name="mobile-web-app-capable" content="yes">
@@ -92,7 +92,6 @@
     .btn-blue{background:#2b6cb0;}.btn-blue:hover{background:#2c5282;}
     .btn-gray{background:#718096;}.btn-gray:hover{background:#4a5568;}
     .btn-green{background:#38a169;}.btn-green:hover{background:#276749;}
-    .btn-orange{background:#dd6b20;}.btn-orange:hover{background:#c05621;}
     .nav{display:flex;align-items:center;justify-content:center;gap:10px;
       padding:12px;background:#fff;flex-wrap:wrap;}
     .nav button{padding:6px 14px;background:#e2e8f0;border:none;
@@ -100,50 +99,57 @@
     .nav button:hover{background:#cbd5e0;}
     .nav select{padding:6px 10px;border:1px solid #cbd5e0;border-radius:6px;
       font-size:.9rem;font-weight:600;background:#fff;cursor:pointer;}
-    .calendar-wrap{padding:14px 20px;overflow-x:auto;}
-    table{width:100%;border-collapse:collapse;min-width:720px;background:#fff;
-      border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);}
-    thead th{background:#2b6cb0;color:#fff;padding:10px 0;font-size:.85rem;}
+    /* ★ 달력 */
+    .calendar-wrap{padding:8px;overflow-x:hidden;}
+    table{width:100%;border-collapse:collapse;background:#fff;
+      border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);
+      table-layout:fixed;}
+    thead th{background:#2b6cb0;color:#fff;padding:8px 0;font-size:.82rem;}
     thead th:first-child{background:#e53e3e;}
     thead th:last-child{background:#3182ce;}
-    td{border:1px solid #e2e8f0;vertical-align:top;padding:6px;
-      height:78px;overflow:visible;font-size:.75rem;width:14.28%;
+    /* ★ 핵심: 셀 높이 고정 */
+    td{border:1px solid #e2e8f0;vertical-align:top;padding:4px;
+      height:90px;max-height:90px;overflow:hidden;
+      font-size:.75rem;width:14.28%;
       cursor:pointer;transition:background .15s;position:relative;}
     td:hover{filter:brightness(.97);}
     td.day-off    {background:#f0f0f0;}
     td.day-special{background:#fffde7;}
     td.day-normal {background:#fff;}
-    .date-num{font-weight:700;font-size:.95rem;margin-bottom:3px;
-      display:flex;align-items:center;gap:4px;}
+    .date-num{font-weight:700;font-size:.85rem;margin-bottom:2px;
+      display:flex;align-items:center;gap:2px;}
     .sunday .date-num{color:#e53e3e;}
     .saturday .date-num{color:#3182ce;}
     .other-month{background:#f7fafc !important;}
     .other-month .date-num{color:#a0aec0;}
     .today{outline:2px solid #2b6cb0;outline-offset:-2px;}
     .today .date-num{color:#2b6cb0;}
-    .holiday-label{font-size:.72rem;color:#c53030;font-weight:600;margin-bottom:2px;}
-    .modified-mark{font-size:.65rem;color:#e53e3e;margin-left:auto;}
+    .holiday-label{font-size:.6rem;color:#c53030;font-weight:600;
+      margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .modified-mark{font-size:.6rem;color:#e53e3e;margin-left:auto;}
     .off-label{display:flex;align-items:center;justify-content:center;
-      height:50px;font-size:.9rem;color:#a0aec0;font-weight:700;}
-    .special-tag{display:inline-block;font-size:.72rem;background:#f6e05e;color:#744210;
-      border-radius:4px;padding:1px 5px;font-weight:700;margin-bottom:2px;}
-    .cell-shift-row{display:flex;align-items:center;gap:3px;
-      margin-bottom:2px;font-size:.78rem;line-height:1.3;
-      border-radius:4px;padding:1px 4px;}
+      height:55px;font-size:.82rem;color:#a0aec0;font-weight:700;}
+    .special-tag{display:inline-block;font-size:.6rem;background:#f6e05e;color:#744210;
+      border-radius:3px;padding:1px 4px;font-weight:700;margin-bottom:1px;}
+    /* ★ 셀 근무 표시 */
+    .cell-shift-row{display:flex;align-items:center;gap:2px;
+      margin-bottom:1px;line-height:1.2;
+      border-radius:3px;padding:1px 3px;}
     .cell-shift-row.row-am   {background:#dbeafe;}
     .cell-shift-row.row-pm   {background:#dcfce7;}
     .cell-shift-row.row-night{background:#ede9fe;}
-    .cell-shift-label{font-weight:700;font-size:.72rem;min-width:24px;}
+    .cell-shift-label{font-weight:700;min-width:18px;font-size:.6rem;}
     .cell-shift-label.am   {color:#1d4ed8;}
     .cell-shift-label.pm   {color:#15803d;}
     .cell-shift-label.night{color:#6d28d9;}
-    .cell-shift-name{font-weight:700;color:#1a202c;font-size:.78rem;}
-    .cell-shift-time{color:#4a5568;font-size:.7rem;margin-left:2px;}
-    .cell-shift-ext{font-size:.68rem;font-weight:700;color:#b45309;
-      margin-left:2px;background:#fef3c7;border-radius:3px;padding:0 3px;}
-    .cell-event-area{margin-top:2px;border-top:1px dashed #e2e8f0;padding-top:2px;}
-    .badge{border-radius:3px;padding:1px 4px;font-size:.72rem;
-      font-weight:600;white-space:nowrap;display:inline-block;margin:1px 1px;}
+    .cell-shift-name{font-weight:700;color:#1a202c;font-size:.65rem;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45px;}
+    .cell-shift-time{color:#4a5568;font-size:.58rem;margin-left:1px;white-space:nowrap;}
+    .cell-shift-ext{font-size:.58rem;font-weight:700;color:#b45309;
+      margin-left:1px;background:#fef3c7;border-radius:2px;padding:0 2px;white-space:nowrap;}
+    .cell-event-area{margin-top:1px;border-top:1px dashed #e2e8f0;padding-top:1px;}
+    .badge{border-radius:3px;padding:0 3px;font-size:.6rem;
+      font-weight:600;white-space:nowrap;display:inline-block;margin:0 1px 1px 0;}
     .badge-off     {background:#fed7d7;color:#742a2a;}
     .badge-timeleave{background:#fbd38d;color:#7b341e;}
     .badge-family  {background:#fce4ec;color:#880e4f;}
@@ -151,10 +157,10 @@
     .badge-groupoff{background:#ffebee;color:#b71c1c;}
     .badge-edu     {background:#c6f6d5;color:#22543d;}
     .badge-special {background:#e2e8f0;color:#4a5568;}
-    .memo-icon{position:absolute;bottom:3px;right:4px;font-size:.75rem;
+    .memo-icon{position:absolute;bottom:2px;right:3px;font-size:.65rem;
       color:#718096;cursor:pointer;z-index:10;background:#f7fafc;
-      border-radius:3px;padding:1px 3px;border:1px solid #e2e8f0;}
-    .memo-icon:hover{background:#ebf8ff;border-color:#2b6cb0;}
+      border-radius:3px;padding:0 2px;border:1px solid #e2e8f0;}
+    /* 메모 팝업 */
     .memo-modal-overlay{display:none;position:fixed;inset:0;
       background:rgba(0,0,0,.45);z-index:400;align-items:center;justify-content:center;}
     .memo-modal-overlay.open{display:flex;}
@@ -170,11 +176,13 @@
     .memo-modal-btns{display:flex;justify-content:flex-end;}
     .memo-close-btn{padding:8px 20px;background:#2b6cb0;color:#fff;
       border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;}
-    .legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
-      padding:10px 24px;background:#fff;border-top:1px solid #e2e8f0;
-      font-size:.78rem;align-items:center;}
-    .legend-item{display:flex;align-items:center;gap:4px;color:#4a5568;}
-    .legend-box{width:12px;height:12px;border-radius:3px;border:1px solid #e2e8f0;flex-shrink:0;}
+    /* 범례 */
+    .legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+      padding:8px 12px;background:#fff;border-top:1px solid #e2e8f0;
+      font-size:.72rem;align-items:center;}
+    .legend-item{display:flex;align-items:center;gap:3px;color:#4a5568;}
+    .legend-box{width:10px;height:10px;border-radius:2px;border:1px solid #e2e8f0;flex-shrink:0;}
+    /* 통계 */
     .stats-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
       z-index:300;align-items:center;justify-content:center;}
     .stats-overlay.open{display:flex;}
@@ -195,6 +203,7 @@
     .stats-table td{border:1px solid #e2e8f0;padding:8px 10px;text-align:center;}
     .stats-table tr:nth-child(even) td{background:#f7fafc;}
     .stats-table .name-cell{font-weight:700;text-align:left;color:#2b6cb0;padding-left:10px;}
+    /* 편집 모달 */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
       z-index:200;align-items:center;justify-content:center;}
     .modal-overlay.open{display:flex;}
@@ -252,21 +261,21 @@
     .cancel-btn{background:#e2e8f0;color:#2d3748;}
     .edit-section{display:none;}
     .edit-section.show{display:block;}
-    /* ══ 모바일 최적화 ══ */
+    /* ★ 모바일 최적화 */
     @media (max-width: 768px) {
-      td{height:60px;padding:3px;}
+      .calendar-wrap{padding:4px;}
+      td{height:72px;max-height:72px;overflow:hidden;padding:3px;}
       .cell-shift-time{display:none;}
       .cell-shift-ext{display:none;}
-      .cell-shift-row{font-size:.72rem;padding:1px 3px;margin-bottom:1px;}
-      .cell-shift-label{font-size:.68rem;min-width:20px;}
-      .cell-shift-name{font-size:.72rem;}
-      .date-num{font-size:.82rem;}
-      .holiday-label{font-size:.6rem;}
-      .badge{font-size:.62rem;padding:1px 3px;}
-      .special-tag{font-size:.62rem;}
-      .off-label{font-size:.78rem;height:40px;}
-      table{min-width:0;}
-      thead th{font-size:.72rem;padding:6px 0;}
+      .cell-shift-row{margin-bottom:1px;padding:1px 2px;}
+      .cell-shift-label{font-size:.58rem;min-width:16px;}
+      .cell-shift-name{font-size:.62rem;max-width:38px;}
+      .date-num{font-size:.78rem;}
+      .holiday-label{font-size:.55rem;}
+      .badge{font-size:.55rem;padding:0 2px;}
+      .special-tag{font-size:.55rem;}
+      .off-label{font-size:.72rem;height:45px;}
+      thead th{font-size:.7rem;padding:5px 0;}
       .nav select{font-size:.8rem;padding:4px 6px;}
       .nav button{padding:4px 10px;font-size:.9rem;}
       .modal{width:100%;border-radius:10px 10px 0 0;
@@ -275,6 +284,8 @@
         position:fixed;bottom:0;left:0;right:0;max-height:85vh;}
       .stats-table th{font-size:.68rem;padding:6px 4px;}
       .stats-table td{font-size:.72rem;padding:6px 4px;}
+      header h1{font-size:1.1rem;}
+      header p{font-size:.75rem;}
     }
     @media print{
       .controls,.nav button,.member-config,.legend,.modal-overlay,
@@ -282,7 +293,7 @@
       .stats-overlay,.memo-modal-overlay{display:none!important;}
       body{background:#fff;}
       .calendar-wrap{padding:4px;}
-      td{height:90px;}
+      td{height:90px;max-height:none;overflow:visible;}
     }
   </style>
 </head>
@@ -387,7 +398,7 @@
   <div class="legend-item"><div class="legend-box" style="background:#dbeafe;"></div>오전</div>
   <div class="legend-item"><div class="legend-box" style="background:#dcfce7;"></div>오후</div>
   <div class="legend-item"><div class="legend-box" style="background:#ede9fe;"></div>야간</div>
-  <div class="legend-item"><div class="legend-box" style="background:#fef3c7;"></div>연장(+h)</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fef3c7;"></div>연장</div>
   <div class="legend-item"><div class="legend-box" style="background:#fed7d7;"></div>연차</div>
   <div class="legend-item"><div class="legend-box" style="background:#fbd38d;"></div>시간차</div>
   <div class="legend-item"><div class="legend-box" style="background:#fce4ec;"></div>가족사랑</div>
@@ -700,7 +711,6 @@ async function fetchHolidays(year) {
         const items=data?.response?.body?.items?.item; if(!items) return;
         (Array.isArray(items)?items:[items]).forEach(item=>{
           const d=String(item.locdate);
-          // ★ 수정
           holidays[`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`]=item.dateName;
         });
       }).catch(()=>{}));
@@ -855,7 +865,6 @@ async function applyWeekCopy() {
   const hasData = targets.filter(t=>overrides[t.key]);
   const noData  = targets.filter(t=>!overrides[t.key]);
   if(hasData.length>0){
-    // ★ 수정: 화살표 함수 올바르게
     const dateList = hasData.map(t => `${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
     const msg = `이미 데이터가 있는 날짜:\n${dateList}\n\n덮어쓰시겠습니까?\n\n[확인] 모두 덮어쓰기\n[취소] 건너뛰기`;
     const overwrite = confirm(msg);
@@ -870,7 +879,6 @@ async function applyWeekCopy() {
   }
   closeModal();
   saveToFirebase();
-  // ★ 수정: alert 괄호 올바르게
   alert(`✅ 주차 근무가 적용되었습니다!`);
 }
 
@@ -1272,11 +1280,11 @@ function resetDay() {
 }
 
 // ══════════════════════════════════════
-//  ★ PWA Service Worker 등록
+//  PWA Service Worker
 // ══════════════════════════════════════
 if('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('ngp-efocke/sw.js')
+    navigator.serviceWorker.register('/ngp-efocke/sw.js')
       .then(reg => console.log('SW registered'))
       .catch(err => console.log('SW error:', err));
   });
