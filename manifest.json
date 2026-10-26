@@ -1,13 +1,13 @@
 {
-  "name": "포장전자 근무달력",
+  "name": "NGP근무달력",
   "short_name": "근무달력",
-  "description": "포장전자팀 근무 관리 달력",
+  "description": "NGP 팀 근무 스케줄 관리",
   "start_url": "/ngp-efocke/",
   "scope": "/ngp-efocke/",
   "display": "standalone",
-  "background_color": "#f0f4f8",
+  "orientation": "portrait",
+  "background_color": "#2b6cb0",
   "theme_color": "#2b6cb0",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/ngp-efocke/icon-192.png",
