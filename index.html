@@ -390,8 +390,10 @@
   <button class="btn btn-gray"  onclick="window.print()">🖨️ 인쇄</button>
 </div>
 <div class="controls" id="guestControls" style="display:none;">
+<div class="controls" id="guestControls" style="display:none;">
+  <button class="btn btn-green" onclick="openStats()">📊 통계</button>
   <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
-</div>
+</div>  
 <div class="nav">
   <button onclick="prevMonth()">◀</button>
   <select id="yearSel"  onchange="onNavChange()"></select>
@@ -997,7 +999,7 @@ function renderCalendar(){
       }
       const numDiv=document.createElement('div');numDiv.className='date-num';
       numDiv.textContent=cellDate.getDate();
-      if(ov){const m=document.createElement('span');m.className='modified-mark';m.textContent='🔧';numDiv.appendChild(m);}
+      if(ov && isAdmin){const m=document.createElement('span');m.className='modified-mark';m.textContent='🔧';numDiv.appendChild(m);}
 
       // ★ 메모 아이콘 numDiv 안에 추가
       if(ov&&ov.memo){
@@ -1054,7 +1056,6 @@ document.getElementById('memoModalOverlay').addEventListener('click',function(e)
 });
 
 function openStats(){
-  if(!isAdmin)return;
   const ysel=document.getElementById('statsYearSel');ysel.innerHTML='';
   for(let y=2026;y<=2050;y++){
     const o=document.createElement('option');o.value=y;o.textContent=y+'년';
