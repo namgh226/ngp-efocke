@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=2.0"/>
-  <title>포장전자근무달력</title>
+  <title>포장전자 근무달력</title>
+  <!-- ★ PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2b6cb0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="근무달력">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
@@ -244,14 +252,14 @@
     .cancel-btn{background:#e2e8f0;color:#2d3748;}
     .edit-section{display:none;}
     .edit-section.show{display:block;}
-    /* ══ 모바일 최적화 (768px 이하) ══ */
+    /* ══ 모바일 최적화 ══ */
     @media (max-width: 768px) {
       td{height:60px;padding:3px;}
       .cell-shift-time{display:none;}
-      .cell-shift-ext {display:none;}
-      .cell-shift-row {font-size:.72rem;padding:1px 3px;margin-bottom:1px;}
+      .cell-shift-ext{display:none;}
+      .cell-shift-row{font-size:.72rem;padding:1px 3px;margin-bottom:1px;}
       .cell-shift-label{font-size:.68rem;min-width:20px;}
-      .cell-shift-name {font-size:.72rem;}
+      .cell-shift-name{font-size:.72rem;}
       .date-num{font-size:.82rem;}
       .holiday-label{font-size:.6rem;}
       .badge{font-size:.62rem;padding:1px 3px;}
@@ -262,8 +270,7 @@
       .nav select{font-size:.8rem;padding:4px 6px;}
       .nav button{padding:4px 10px;font-size:.9rem;}
       .modal{width:100%;border-radius:10px 10px 0 0;
-        position:fixed;bottom:0;left:0;right:0;
-        max-height:85vh;padding:16px;}
+        position:fixed;bottom:0;left:0;right:0;max-height:85vh;padding:16px;}
       .stats-modal{width:100%;border-radius:10px 10px 0 0;
         position:fixed;bottom:0;left:0;right:0;max-height:85vh;}
       .stats-table th{font-size:.68rem;padding:6px 4px;}
@@ -280,10 +287,11 @@
   </style>
 </head>
 <body>
+
 <!-- PIN 오버레이 -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
-    <h2>🔐 포장전자근무달력</h2>
+    <h2>🔐 포장전자 근무달력</h2>
     <p>관리자 PIN을 입력하거나 게스트로 입장하세요</p>
     <div class="pin-input-wrap">
       <div class="pin-title">🔑 관리자 PIN 입력</div>
@@ -318,10 +326,12 @@
     </button>
   </div>
 </div>
+
 <header>
-  <h1>📅 포장전자근무달력</h1>
+  <h1>📅 포장전자 근무달력</h1>
   <p>🔘 휴무 · ⭐ 특근 · ✅ 정상근무 | 실시간 동기화</p>
 </header>
+
 <div class="user-bar" id="userBar">
   <span id="userBarText">🔐 로그인 중...</span>
   <div style="display:flex;gap:8px;align-items:center;">
@@ -329,8 +339,10 @@
     <button class="logout-btn" onclick="logout()">🔒 로그아웃</button>
   </div>
 </div>
+
 <div class="sync-status" id="syncStatus">🔄 연결 중...</div>
 <div class="holiday-status" id="holidayStatus">🔄 공휴일 정보 로딩 중...</div>
+
 <div class="member-config" id="memberConfig">
   <label style="font-weight:700;color:#2b6cb0;">👑 팀원 관리</label>
   <div class="member-list-wrap" id="memberListWrap"></div>
@@ -343,6 +355,7 @@
   </div>
   <button class="btn btn-blue" onclick="applyConfig()">✅ 적용</button>
 </div>
+
 <div class="controls" id="adminControls" style="display:none;">
   <button class="btn btn-green" onclick="openStats()">📊 통계</button>
   <button class="btn btn-gray"  onclick="window.print()">🖨️ 인쇄</button>
@@ -350,6 +363,7 @@
 <div class="controls" id="guestControls" style="display:none;">
   <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
 </div>
+
 <div class="nav">
   <button onclick="prevMonth()">◀</button>
   <select id="yearSel"  onchange="onNavChange()"></select>
@@ -357,6 +371,7 @@
   <select id="weekSel"  onchange="onWeekChange()"></select>
   <button onclick="nextMonth()">▶</button>
 </div>
+
 <div class="calendar-wrap">
   <table>
     <thead>
@@ -365,6 +380,7 @@
     <tbody id="calBody"></tbody>
   </table>
 </div>
+
 <div class="legend">
   <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div>휴무</div>
   <div class="legend-item"><div class="legend-box" style="background:#fffde7;border-color:#f6e05e;"></div>특근</div>
@@ -380,6 +396,7 @@
   <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div>교육</div>
   <div class="legend-item">📌 메모</div>
 </div>
+
 <!-- 메모 팝업 -->
 <div class="memo-modal-overlay" id="memoModalOverlay">
   <div class="memo-modal">
@@ -393,6 +410,7 @@
     </div>
   </div>
 </div>
+
 <!-- 통계 모달 -->
 <div class="stats-overlay" id="statsOverlay">
   <div class="stats-modal">
@@ -405,6 +423,7 @@
     </div>
   </div>
 </div>
+
 <!-- 편집 모달 -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
@@ -450,6 +469,7 @@
     </div>
   </div>
 </div>
+
 <div class="edit-locked" id="editLocked">🔒 관리자 로그인 후 수정 가능합니다</div>
 
 <script>
@@ -672,17 +692,15 @@ async function fetchHolidays(year) {
   if(holidayCache[year]) return holidayCache[year];
   const statusEl=document.getElementById('holidayStatus');
   try {
-    // ★ 수정: textContent = `...`
     statusEl.textContent = `🔄 ${year}년 공휴일 불러오는 중...`;
     const holidays={},promises=[];
     for(let m=1;m<=12;m++){
-      // ★ 수정: const url = `...`
       const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
       promises.push(fetch(url).then(r=>r.json()).then(data=>{
         const items=data?.response?.body?.items?.item; if(!items) return;
         (Array.isArray(items)?items:[items]).forEach(item=>{
           const d=String(item.locdate);
-          // ★ 수정: holidays[`...`] = ...
+          // ★ 수정
           holidays[`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`]=item.dateName;
         });
       }).catch(()=>{}));
@@ -690,14 +708,12 @@ async function fetchHolidays(year) {
     await Promise.all(promises);
     if(!Object.keys(holidays).length) throw new Error();
     holidayCache[year]=holidays;
-    // ★ 수정
     statusEl.textContent = `✅ ${year}년 공휴일 업데이트 완료!`;
     statusEl.className='holiday-status success';
     setTimeout(()=>{statusEl.style.display='none';},3000);
     return holidayCache[year];
   } catch {
     holidayCache[year]=HOLIDAY_FALLBACK[year]||{};
-    // ★ 수정
     statusEl.textContent = `⚠️ 기본 공휴일 데이터 사용`;
     statusEl.className='holiday-status error';
     return holidayCache[year];
@@ -760,7 +776,6 @@ function refreshWeekSel() {
   sel.appendChild(all);
   getWeeksOfMonth(currentYear,currentMonth).forEach((w,i)=>{
     const o=document.createElement('option'); o.value=i+1;
-    // ★ 수정: o.textContent = `...`
     o.textContent = `${i+1}주차 (${w.start.getDate()}일~${w.end.getDate()}일)`;
     sel.appendChild(o);
   });
@@ -818,7 +833,7 @@ function isHolidayDate(date) {
 }
 
 // ══════════════════════════════════════
-//  ★ 주차 복사
+//  주차 복사
 // ══════════════════════════════════════
 async function applyWeekCopy() {
   if(!modalKey||!modalDate) return;
@@ -840,8 +855,8 @@ async function applyWeekCopy() {
   const hasData = targets.filter(t=>overrides[t.key]);
   const noData  = targets.filter(t=>!overrides[t.key]);
   if(hasData.length>0){
-    // ★ 수정: 템플릿 리터럴 올바르게
-    const dateList = hasData.map(t=>`${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
+    // ★ 수정: 화살표 함수 올바르게
+    const dateList = hasData.map(t => `${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
     const msg = `이미 데이터가 있는 날짜:\n${dateList}\n\n덮어쓰시겠습니까?\n\n[확인] 모두 덮어쓰기\n[취소] 건너뛰기`;
     const overwrite = confirm(msg);
     if(overwrite){
@@ -855,7 +870,7 @@ async function applyWeekCopy() {
   }
   closeModal();
   saveToFirebase();
-  // ★ 수정: alert(`...`)
+  // ★ 수정: alert 괄호 올바르게
   alert(`✅ 주차 근무가 적용되었습니다!`);
 }
 
@@ -903,22 +918,18 @@ function renderCellContent(td, dayType, ov) {
   const ROW_CLS={am:'row-am',pm:'row-pm',night:'row-night'};
   shiftEntries.forEach(([name,s])=>{
     const row=document.createElement('div');
-    // ★ 수정: row.className = `...`
     row.className = `cell-shift-row ${ROW_CLS[s.type]||''}`;
     const lbl=document.createElement('span');
-    // ★ 수정: lbl.className = `...`
     lbl.className = `cell-shift-label ${s.type}`;
     lbl.textContent=SHIFT_LABEL_MAP[s.type]||s.type;
     const nm=document.createElement('span'); nm.className='cell-shift-name'; nm.textContent=name;
     const tm=document.createElement('span'); tm.className='cell-shift-time';
     const eDisp=s.endH>=24?s.endH-24+'(익)':s.endH;
-    // ★ 수정: tm.textContent = `...`
     tm.textContent = ` ${s.startH}~${eDisp}`;
     row.appendChild(lbl); row.appendChild(nm); row.appendChild(tm);
     const extH=getExtHours(s.startH,s.endH,dayType);
     if(extH>0){
       const ext=document.createElement('span'); ext.className='cell-shift-ext';
-      // ★ 수정: ext.textContent = `...`
       ext.textContent = `+${Math.round(extH*10)/10}h`;
       row.appendChild(ext);
     }
@@ -930,11 +941,8 @@ function renderCellContent(td, dayType, ov) {
     const ea=document.createElement('div'); ea.className='cell-event-area';
     evEntries.forEach(([name,ev])=>{
       const b=document.createElement('span');
-      // ★ 수정: b.className = `...`
       b.className = `badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
-      // ★ 수정: let txt = `...`
       let txt = `${BADGE_LABEL[ev.type]||ev.type} ${name}`;
-      // ★ 수정: txt += `...`
       if(ev.type==='timeleave'&&ev.hours) txt += ` ${ev.hours}h`;
       b.textContent=txt; ea.appendChild(b);
     });
@@ -1000,7 +1008,6 @@ function renderCalendar() {
       }
       if(!td.classList.contains('other-month')) renderCellContent(td,dayType,ov);
       if(ov&&ov.memo){
-        // ★ 수정: const dateLabel = `...`
         const dateLabel = `${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
         const icon=document.createElement('div'); icon.className='memo-icon'; icon.textContent='📌';
         icon.addEventListener('click',e=>{
@@ -1098,8 +1105,7 @@ function renderStats() {
       }
     });
   });
-  let html='';
-  // ★ 수정: html += `...`
+  let html = '';
   html += `<div class="stats-section-title">📅 연간 통계 (${year}년)</div>`;
   html += `<table class="stats-table"><thead><tr>
     <th style="min-width:60px;">팀원</th>
@@ -1117,16 +1123,13 @@ function renderStats() {
       <td>${s.fitnessCnt>0?s.fitnessCnt+'회':'-'}</td>
     </tr>`;
   });
-  // ★ 수정: html += `...`
   html += `</tbody></table>`;
   html += `<div class="stats-section-title" style="margin-top:20px;">
     📆 월별 수당 현황
     <select class="stats-month-sel" id="statsMonthSel" onchange="renderMonthlyTable()">`;
   for(let m=1;m<=12;m++){
-    // ★ 수정: html += `...`
     html += `<option value="${m}" ${m===currentMonth+1?'selected':''}>${m}월</option>`;
   }
-  // ★ 수정: html += `...`
   html += `</select></div><div id="monthlyTableWrap"></div>`;
   document.getElementById('statsContent').innerHTML=html;
   window._monthlyStats=monthlyStats;
@@ -1266,6 +1269,17 @@ function saveDay() {
 }
 function resetDay() {
   delete overrides[modalKey]; closeModal(); saveToFirebase();
+}
+
+// ══════════════════════════════════════
+//  ★ PWA Service Worker 등록
+// ══════════════════════════════════════
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.log('SW error:', err));
+  });
 }
 
 // ══════════════════════════════════════
