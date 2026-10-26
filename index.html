@@ -132,7 +132,11 @@
     .special-tag{display:inline-block;font-size:.6rem;background:#f6e05e;color:#744210;
       border-radius:3px;padding:1px 4px;font-weight:700;margin-bottom:1px;}
     /* ★ 셀 근무 표시 */
-    .cell-shift-row{display:flex;align-items:center;gap:2px;
+    .cell-shift-row{display:flex;flex-direction:column;gap:0px;}
+    /* 라벨+이름 한 줄 */
+    .cell-shift-top{display:flex;align-items:center;gap:2px;}
+    /* 시간은 아래 줄 */
+    .cell-shift-time{font-size:.58rem;color:#4a5568;padding-left:20px;}
       margin-bottom:1px;line-height:1.2;
       border-radius:3px;padding:1px 3px;}
     .cell-shift-row.row-am   {background:#dbeafe;}
