@@ -1031,7 +1031,7 @@ td.appendChild(numDiv);
 const holiday=getHoliday(key);
 if(holiday){
   const hl=document.createElement('div');hl.className='holiday-label';
-  hl.textContent='🎌 '+holiday;td.appendChild(hl);
+  hl.innerHTML='<img src="https://flagcdn.com/w20/kr.png" style="width:14px;height:10px;margin-right:2px;vertical-align:middle;">'+holiday;
 }
 if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
       if(isCurrent){
