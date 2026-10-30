@@ -1,1 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>NGP팀장근무달력</title>
+  <link rel="manifest" href="/ngp-schedule/manifest.json">
+  <meta name="theme-color" content="#2b6cb0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="근무달력">
+  <link rel="apple-touch-icon" href="/ngp-schedule/icon-192.png">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Malgun Gothic','Segoe UI',sans-serif;background:#f0f4f8;color:#2d3748;}
+    header{background:linear-gradient(135deg,#2b6cb0,#2c7a7b);color:#fff;padding:18px 24px;text-align:center;}
+    header h1{font-size:1.5rem;}
+    header p{font-size:0.88rem;opacity:.85;margin-top:4px;}
+    .pin-overlay{display:flex;position:fixed;inset:0;background:linear-gradient(135deg,#2b6cb0,#2c7a7b);z-index:999;align-items:center;justify-content:center;}
+    .pin-overlay.hidden{display:none;}
+    .pin-box{background:#fff;border-radius:20px;padding:36px 32px;width:360px;max-width:90vw;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.3);}
+    .pin-box h2{font-size:1.2rem;color:#2b6cb0;margin-bottom:6px;}
+    .pin-box p{font-size:.85rem;color:#718096;margin-bottom:20px;}
+    .team-select-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+    .team-btn{padding:12px;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;font-size:.95rem;font-weight:600;background:#f7fafc;transition:all .15s;color:#2d3748;text-align:center;}
+    .team-btn:hover{border-color:#2b6cb0;background:#ebf8ff;}
+    .team-btn.selected{border-color:#2b6cb0;background:#ebf8ff;color:#2b6cb0;}
+    .pin-input-section{display:none;}
+    .pin-input-section.show{display:block;}
+    .pin-input-wrap{margin-bottom:16px;}
+    .pin-title{font-size:.9rem;font-weight:600;color:#4a5568;margin-bottom:10px;}
+    .pin-dots{display:flex;justify-content:center;gap:10px;margin-bottom:16px;}
+    .pin-dot{width:16px;height:16px;border-radius:50%;background:#e2e8f0;border:2px solid #cbd5e0;transition:all .2s;}
+    .pin-dot.filled{background:#2b6cb0;border-color:#2b6cb0;}
+    .pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+    .pin-key{padding:14px;border-radius:10px;border:1px solid #e2e8f0;cursor:pointer;font-size:1.1rem;font-weight:600;background:#f7fafc;transition:all .1s;}
+    .pin-key:hover{background:#ebf8ff;border-color:#2b6cb0;}
+    .pin-key:active{transform:scale(.95);}
+    .pin-key.del{background:#fff5f5;color:#e53e3e;}
+    .pin-error{color:#e53e3e;font-size:.82rem;min-height:20px;margin-top:4px;}
+    .pin-divider{border-top:1px solid #e2e8f0;margin:16px 0;}
+    .guest-btn{width:100%;padding:12px;border-radius:10px;border:2px dashed #e2e8f0;background:#f7fafc;cursor:pointer;font-size:.88rem;color:#718096;font-weight:600;transition:all .15s;}
+    .guest-btn:hover{border-color:#a0aec0;background:#edf2f7;}
+    .back-btn{width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;background:#f7fafc;cursor:pointer;font-size:.82rem;color:#718096;margin-bottom:12px;transition:all .15s;}
+    .back-btn:hover{background:#edf2f7;}
+    .user-bar{background:#2c5282;color:#fff;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
+    .user-bar.view-only{background:#4a5568;}
+    .user-bar.planner{background:#2c7a7b;}
+    .logout-btn{padding:4px 12px;background:rgba(255,255,255,.2);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:.78rem;}
+    .logout-btn:hover{background:rgba(255,255,255,.35);}
+    .edit-locked{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2d3748;color:#fff;padding:10px 24px;border-radius:20px;font-size:.82rem;z-index:500;display:none;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+    .edit-locked.show{display:block;}
+    .sync-status{text-align:center;padding:5px;font-size:.75rem;background:#f0fff4;color:#276749;border-bottom:1px solid #c6f6d5;}
+    .sync-status.syncing{background:#ebf8ff;color:#2b6cb0;border-color:#bee3f8;}
+    .sync-status.error{background:#fff5f5;color:#e53e3e;border-color:#fed7d7;}
+    .holiday-status{text-align:center;padding:6px;font-size:.78rem;background:#ebf8ff;color:#2b6cb0;border-bottom:1px solid #bee3f8;}
+    .holiday-status.error{background:#fff5f5;color:#e53e3e;}
+    .holiday-status.success{background:#f0fff4;color:#276749;}
+    .member-config{background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 24px;display:none;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;}
+    .member-config.show{display:flex;}
+    .member-config label{font-size:.82rem;font-weight:600;}
+    .member-list-wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    .member-tag{display:flex;align-items:center;gap:4px;background:#ebf8ff;border:1px solid #bee3f8;border-radius:8px;padding:4px 10px;}
+    .member-tag input{width:70px;border:none;background:transparent;font-size:.85rem;font-weight:600;color:#2b6cb0;}
+    .member-tag .del-member{background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.9rem;padding:0 2px;}
+    .add-member-btn{padding:6px 14px;background:#2b6cb0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;}
+    .add-member-btn:hover{background:#2c5282;}
+    .admin-pin-wrap{display:flex;align-items:center;gap:6px;}
+    .admin-pin-wrap input{width:80px;padding:5px 8px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:12px 24px;background:#fff;border-bottom:1px solid #e2e8f0;}
+    .btn{padding:7px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:600;color:#fff;}
+    .btn-blue{background:#2b6cb0;}.btn-blue:hover{background:#2c5282;}
+    .btn-gray{background:#718096;}.btn-gray:hover{background:#4a5568;}
+    .btn-green{background:#38a169;}.btn-green:hover{background:#276749;}
+    .nav{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#fff;flex-wrap:wrap;}
+    .nav button{padding:6px 14px;background:#e2e8f0;border:none;border-radius:6px;cursor:pointer;font-size:1rem;}
+    .nav button:hover{background:#cbd5e0;}
+    .nav select{padding:6px 10px;border:1px solid #cbd5e0;border-radius:6px;font-size:.9rem;font-weight:600;background:#fff;cursor:pointer;}
+    .calendar-wrap{padding:14px 20px;overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;min-width:720px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);table-layout:fixed;}
+    thead th{background:#2b6cb0;color:#fff;padding:10px 0;font-size:.88rem;}
+    thead th:first-child{background:#e53e3e;}
+    thead th:last-child{background:#3182ce;}
+    td{border:1px solid #e2e8f0;vertical-align:top;padding:6px;height:95px;max-height:95px;overflow:hidden;font-size:.75rem;width:14.28%;cursor:pointer;transition:background .15s;position:relative;}
+    td:hover{filter:brightness(.97);}
+    td.day-off{background:#f0f0f0;}
+    td.day-special{background:#fffde7;}
+    td.day-normal{background:#fff;}
+    .date-num{font-weight:700;font-size:.95rem;margin-bottom:3px;display:flex;align-items:center;gap:4px;}
+    .sunday .date-num{color:#e53e3e;}
+    .saturday .date-num{color:#3182ce;}
+    .other-month{background:#f7fafc !important;}
+    .other-month .date-num{color:#a0aec0;}
+    .today{outline:2px solid #2b6cb0;outline-offset:-2px;}
+    .today .date-num{color:#2b6cb0;}
+    .holiday-label{font-size:.7rem;color:#c53030;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .modified-mark{font-size:.62rem;color:#e53e3e;margin-left:auto;}
+    .off-label{display:flex;align-items:center;justify-content:center;height:55px;font-size:.88rem;color:#a0aec0;font-weight:700;}
+    .special-tag{display:inline-block;font-size:.7rem;background:#f6e05e;color:#744210;border-radius:3px;padding:1px 5px;font-weight:700;margin-bottom:2px;}
+    .cell-shift-row{display:flex;align-items:center;gap:3px;margin-bottom:2px;font-size:.78rem;line-height:1.3;border-radius:4px;padding:1px 4px;}
+    .cell-shift-row.row-am{background:#dbeafe;}
+    .cell-shift-row.row-pm{background:#dcfce7;}
+    .cell-shift-row.row-night{background:#ede9fe;}
+    .cell-shift-label{font-weight:700;font-size:.72rem;min-width:24px;}
+    .cell-shift-label.am{color:#1d4ed8;}
+    .cell-shift-label.pm{color:#15803d;}
+    .cell-shift-label.night{color:#6d28d9;}
+    .cell-shift-name{font-weight:700;color:#1a202c;font-size:.78rem;}
+    .cell-shift-time{color:#4a5568;font-size:.7rem;margin-left:2px;}
+    .cell-shift-ext{font-size:.68rem;font-weight:700;color:#b45309;margin-left:2px;background:#fef3c7;border-radius:3px;padding:0 3px;}
+    .cell-event-area{margin-top:2px;border-top:1px dashed #e2e8f0;padding-top:2px;}
+    .badge{border-radius:3px;padding:1px 4px;font-size:.72rem;font-weight:600;white-space:nowrap;display:inline-block;margin:1px 1px;}
+    .badge-off{background:#fed7d7;color:#742a2a;}
+    .badge-timeleave{background:#fbd38d;color:#7b341e;}
+    .badge-family{background:#fce4ec;color:#880e4f;}
+    .badge-fitness{background:#e8f5e9;color:#1b5e20;}
+    .badge-groupoff{background:#ffebee;color:#b71c1c;}
+    .badge-edu{background:#c6f6d5;color:#22543d;}
+    .badge-special{background:#e2e8f0;color:#4a5568;}
+    .badge-maternity{background:#d1fae5;color:#065f46;}
+    .memo-icon{display:inline-flex;align-items:center;font-size:.75rem;color:#718096;cursor:pointer;background:#f7fafc;border-radius:3px;padding:2px 4px;border:1px solid #e2e8f0;margin-left:4px;}
+    .memo-icon:hover{background:#ebf8ff;border-color:#2b6cb0;}
+    .memo-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;align-items:center;justify-content:center;}
+    .memo-modal-overlay.open{display:flex;}
+    .memo-modal{background:#fff;border-radius:14px;padding:24px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.22);}
+    .memo-modal-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:2px solid #e2e8f0;padding-bottom:10px;}
+    .memo-modal-header h4{font-size:.95rem;color:#2b6cb0;font-weight:700;}
+    .memo-modal-date{font-size:.78rem;color:#718096;margin-left:auto;}
+    .memo-modal-body{font-size:.88rem;color:#2d3748;line-height:1.8;white-space:pre-wrap;word-break:keep-all;background:#f7fafc;border-radius:8px;padding:12px;min-height:60px;margin-bottom:16px;}
+    .memo-modal-btns{display:flex;justify-content:flex-end;}
+    .memo-close-btn{padding:8px 20px;background:#2b6cb0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;}
+    .shift-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:350;align-items:flex-end;justify-content:center;}
+    .shift-popup-overlay.open{display:flex;}
+    .shift-popup{background:#fff;border-radius:14px 14px 0 0;padding:20px;width:100%;max-width:500px;box-shadow:0 -4px 20px rgba(0,0,0,.2);max-height:70vh;overflow-y:auto;}
+    .shift-popup-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border-bottom:2px solid #e2e8f0;padding-bottom:10px;}
+    .shift-popup-header h4{font-size:1rem;color:#2b6cb0;font-weight:700;}
+    .shift-popup-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:#718096;padding:4px;}
+    .shift-popup-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:6px;}
+    .shift-popup-row.row-am{background:#dbeafe;}
+    .shift-popup-row.row-pm{background:#dcfce7;}
+    .shift-popup-row.row-night{background:#ede9fe;}
+    .shift-popup-label{font-weight:700;font-size:.88rem;min-width:32px;}
+    .shift-popup-label.am{color:#1d4ed8;}
+    .shift-popup-label.pm{color:#15803d;}
+    .shift-popup-label.night{color:#6d28d9;}
+    .shift-popup-name{font-weight:700;font-size:.88rem;color:#1a202c;flex:1;}
+    .shift-popup-time{font-size:.82rem;color:#4a5568;}
+    .shift-popup-ext{font-size:.78rem;font-weight:700;color:#b45309;background:#fef3c7;border-radius:3px;padding:1px 6px;}
+    .shift-popup-events{margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:10px;}
+    .shift-popup-events .badge{font-size:.82rem;padding:3px 8px;margin:2px;}
+    .shift-popup-edit-btn{width:100%;padding:12px;background:#2b6cb0;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:.92rem;font-weight:700;margin-top:14px;transition:all .15s;}
+    .shift-popup-edit-btn:hover{background:#2c5282;}
+    .legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 24px;background:#fff;border-top:1px solid #e2e8f0;font-size:.78rem;align-items:center;}
+    .legend-item{display:flex;align-items:center;gap:4px;color:#4a5568;}
+    .legend-box{width:12px;height:12px;border-radius:3px;border:1px solid #e2e8f0;flex-shrink:0;}
+    .stats-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;}
+    .stats-overlay.open{display:flex;}
+    .stats-modal{background:#fff;border-radius:14px;padding:24px;width:820px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.22);}
+    .stats-modal h3{margin-bottom:16px;font-size:1rem;border-bottom:2px solid #e2e8f0;padding-bottom:8px;}
+    .stats-year-sel{padding:6px 10px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;margin-left:10px;}
+    .stats-month-sel{padding:6px 10px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;margin-left:6px;}
+    .stats-section-title{font-size:.85rem;font-weight:700;color:#2b6cb0;margin:16px 0 8px;padding-left:4px;border-left:3px solid #2b6cb0;}
+    .stats-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:6px;}
+    .stats-table th{background:#2b6cb0;color:#fff;padding:8px 10px;text-align:center;font-size:.78rem;}
+    .stats-table td{border:1px solid #e2e8f0;padding:8px 10px;text-align:center;}
+    .stats-table tr:nth-child(even) td{background:#f7fafc;}
+    .stats-table .name-cell{font-weight:700;text-align:left;color:#2b6cb0;padding-left:10px;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:#fff;border-radius:14px;padding:24px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.22);}
+    .modal h3{margin-bottom:14px;font-size:1rem;border-bottom:2px solid #e2e8f0;padding-bottom:8px;}
+    .modal-section{margin-bottom:16px;}
+    .modal-section h4{font-size:.85rem;font-weight:700;color:#2b6cb0;margin-bottom:8px;}
+    .modal-section.memo-section{border-top:2px solid #e2e8f0;padding-top:14px;}
+    .day-type-row{display:flex;gap:10px;margin-bottom:16px;}
+    .day-type-btn{flex:1;padding:12px 6px;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;font-size:.88rem;font-weight:600;background:#fff;text-align:center;transition:all .15s;}
+    .day-type-btn:hover{border-color:#2b6cb0;}
+    .day-type-btn.selected-off{border-color:#718096;background:#f0f0f0;color:#4a5568;}
+    .day-type-btn.selected-special{border-color:#d69e2e;background:#fffde7;color:#744210;}
+    .day-type-btn.selected-normal{border-color:#2b6cb0;background:#ebf8ff;color:#2b6cb0;}
+    .week-copy-btn{width:100%;padding:10px;border:2px dashed #dd6b20;background:#fffaf0;border-radius:8px;cursor:pointer;font-size:.85rem;color:#dd6b20;font-weight:600;margin-bottom:14px;transition:all .15s;}
+    .week-copy-btn:hover{background:#feebc8;border-color:#c05621;}
+    .shift-member-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:8px 10px;border-radius:8px;background:#f7fafc;border:1px solid #e2e8f0;flex-wrap:wrap;}
+    .shift-member-row.is-am{background:#dbeafe;border-color:#93c5fd;}
+    .shift-member-row.is-pm{background:#dcfce7;border-color:#86efac;}
+    .shift-member-row.is-night{background:#ede9fe;border-color:#c4b5fd;}
+    .smrow-name{font-weight:700;font-size:.88rem;min-width:48px;color:#2d3748;}
+    .smrow-type{padding:5px 6px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;min-width:75px;}
+    .smrow-time{display:none;align-items:center;gap:4px;}
+    .smrow-time.show{display:flex;}
+    .smrow-time label{font-size:.78rem;color:#718096;}
+    .smrow-time input{width:55px;padding:4px 5px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;text-align:center;}
+    .smrow-time-note{font-size:.7rem;color:#a0aec0;}
+    .event-slot{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:7px 10px;background:#f7fafc;border-radius:8px;flex-wrap:wrap;}
+    .event-slot .e-name{font-weight:700;font-size:.85rem;min-width:50px;color:#2d3748;}
+    .event-slot select{flex:1;min-width:110px;padding:5px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;}
+    .tl-wrap{display:none;align-items:center;gap:4px;}
+    .tl-wrap.show{display:flex;}
+    .tl-wrap input{width:50px;padding:4px 6px;border:1px solid #fbd38d;border-radius:6px;font-size:.85rem;text-align:center;background:#fffbf0;}
+    .tl-wrap span{font-size:.78rem;color:#7b341e;}
+    .memo-input{width:100%;padding:7px 10px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;resize:none;}
+    .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+    .modal-btns button{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;}
+    .ok-btn{background:#2b6cb0;color:#fff;}
+    .reset-btn{background:#e53e3e;color:#fff;}
+    .cancel-btn{background:#e2e8f0;color:#2d3748;}
+    .edit-section{display:none;}
+    .edit-section.show{display:block;}
+    @media (max-width:768px){
+      .calendar-wrap{padding:4px;}
+      td{height:72px;max-height:72px;overflow:hidden;padding:2px 3px;}
+      table{min-width:0;}
+      thead th{font-size:.7rem;padding:6px 0;}
+      .date-num{font-size:.8rem;margin-bottom:1px;}
+      .holiday-label{font-size:.55rem;}
+      .off-label{font-size:.75rem;height:45px;}
+      .special-tag{font-size:.58rem;padding:1px 3px;}
+      .cell-shift-row{padding:1px 3px;margin-bottom:1px;border-radius:3px;cursor:pointer;}
+      .cell-shift-label{font-size:.50rem !important;min-width:18px;}
+      .cell-shift-name{font-size:.50rem !important;font-weight:700;}
+      .cell-shift-time{display:none;}
+      .cell-shift-ext{display:none;}
+      .cell-event-area .badge{font-size:.40rem !important;padding:0 2px;}
+      .cell-event-area{margin-top:1px;padding-top:1px;}
+      .nav select{font-size:.8rem;padding:4px 6px;}
+      .nav button{padding:4px 10px;font-size:.9rem;}
+      .modal{width:100%;border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;right:0;max-height:85vh;padding:16px;}
+      .stats-modal{width:100%;border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;right:0;max-height:85vh;}
+      .stats-table th{font-size:.68rem;padding:6px 4px;}
+      .stats-table td{font-size:.72rem;padding:6px 4px;}
+      header h1{font-size:1.1rem;}
+      header p{font-size:.75rem;}
+    }
+    @media print{
+      .controls,.nav button,.member-config,.legend,.modal-overlay,
+      .holiday-status,.user-bar,.sync-status,.pin-overlay,.edit-locked,
+      .stats-overlay,.memo-modal-overlay,.shift-popup-overlay{display:none!important;}
+      body{background:#fff;}
+      .calendar-wrap{padding:4px;}
+      td{height:90px;max-height:none;overflow:visible;}
+    }
 
+    /* ===== ★ 신규 추가 스타일 (기존 설정값 변경 없음, 새 요소만) ===== */
+    .role-select-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+    .role-btn{padding:14px;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;
+      font-size:.95rem;font-weight:700;background:#f7fafc;transition:all .15s;text-align:center;}
+    .role-btn:hover{border-color:#2b6cb0;background:#ebf8ff;}
+    .planner-team-select{display:none;}
+    .planner-team-select.show{display:block;}
+
+    .notif-bell{position:relative;cursor:pointer;background:rgba(255,255,255,.2);
+      border:none;border-radius:6px;color:#fff;padding:4px 10px;font-size:.85rem;}
+    .notif-bell:hover{background:rgba(255,255,255,.35);}
+    .notif-badge{position:absolute;top:-6px;right:-6px;background:#e53e3e;color:#fff;
+      font-size:.65rem;font-weight:700;border-radius:50%;width:18px;height:18px;
+      display:flex;align-items:center;justify-content:center;}
+    .notif-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+      z-index:600;align-items:center;justify-content:center;}
+    .notif-overlay.open{display:flex;}
+    .notif-modal{background:#fff;border-radius:14px;padding:20px;width:420px;max-width:92vw;
+      max-height:75vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.22);}
+    .notif-modal h3{font-size:1rem;margin-bottom:12px;border-bottom:2px solid #e2e8f0;padding-bottom:8px;
+      display:flex;justify-content:space-between;align-items:center;}
+    .notif-item{padding:10px;border-radius:8px;background:#f7fafc;margin-bottom:8px;
+      border-left:3px solid #2b6cb0;font-size:.85rem;}
+    .notif-item.in-confirmed{border-left-color:#dd6b20;background:#fffaf0;}
+    .notif-item-date{font-weight:700;color:#2b6cb0;}
+    .notif-item.in-confirmed .notif-item-date{color:#dd6b20;}
+    .notif-item-time{font-size:.72rem;color:#a0aec0;float:right;}
+    .notif-item-desc{margin-top:4px;color:#4a5568;}
+    .notif-empty{text-align:center;color:#a0aec0;padding:30px 0;font-size:.88rem;}
+    .notif-clear-btn{font-size:.75rem;color:#718096;background:none;border:none;cursor:pointer;text-decoration:underline;}
+
+    .review-status{text-align:center;padding:6px;font-size:.78rem;background:#e6fffa;color:#234e52;border-bottom:1px solid #b2f5ea;display:none;}
+    .confirm-status{text-align:center;padding:6px;font-size:.78rem;background:#fffaf0;color:#9c4221;border-bottom:1px solid #fbd38d;display:none;}
+    .unconfirmed-tag{position:absolute;top:2px;right:2px;font-size:.6rem;background:#fff5f5;color:#e53e3e;padding:1px 4px;border-radius:3px;font-weight:700;}
+    .changed-tag{position:absolute;top:2px;right:2px;font-size:.6rem;background:#fffaf0;color:#dd6b20;padding:1px 4px;border-radius:3px;font-weight:700;border:1px solid #f6ad55;}
+  </style>
+</head>
+<body>
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <h2>📅 NGP근무달력</h2>
+    <p id="pinBoxDesc">팀을 선택하세요</p>
+    <div class="team-select-wrap" id="teamSelectWrap"></div>
+
+    <!-- ★ 역할 선택 (관리자/작업계획담당자/게스트) -->
+    <div class="role-select-wrap" id="roleSelectWrap" style="display:none;">
+      <button class="back-btn" onclick="backToTeamSelect()">← 팀 선택으로 돌아가기</button>
+      <button class="role-btn" onclick="goAdminPin()">👑 관리자</button>
+      <button class="role-btn" onclick="enterViewOnly()">👁️ 게스트 (열람만)</button>
+    </div>
+
+    <!-- 기존 관리자 PIN 입력 섹션 (그대로 유지) -->
+    <div class="pin-input-section" id="pinInputSection">
+      <button class="back-btn" onclick="backToRoleSelect()">← 뒤로</button>
+      <div class="pin-input-wrap">
+        <div class="pin-title" id="pinTitle">🔑 관리자 PIN 입력</div>
+        <div class="pin-dots" id="pinDots">
+          <div class="pin-dot" id="dot0"></div>
+          <div class="pin-dot" id="dot1"></div>
+          <div class="pin-dot" id="dot2"></div>
+          <div class="pin-dot" id="dot3"></div>
+        </div>
+        <div class="pin-keypad">
+          <button class="pin-key" onclick="pinInput('1')">1</button>
+          <button class="pin-key" onclick="pinInput('2')">2</button>
+          <button class="pin-key" onclick="pinInput('3')">3</button>
+          <button class="pin-key" onclick="pinInput('4')">4</button>
+          <button class="pin-key" onclick="pinInput('5')">5</button>
+          <button class="pin-key" onclick="pinInput('6')">6</button>
+          <button class="pin-key" onclick="pinInput('7')">7</button>
+          <button class="pin-key" onclick="pinInput('8')">8</button>
+          <button class="pin-key" onclick="pinInput('9')">9</button>
+          <button class="pin-key" onclick="pinBack()">←</button>
+          <button class="pin-key" onclick="pinInput('0')">0</button>
+          <button class="pin-key del" onclick="pinClear()">✕</button>
+        </div>
+        <div class="pin-error" id="pinError"></div>
+      </div>
+    </div>
+
+    <div class="pin-divider" id="guestDividerWrap" style="display:none;"></div>
+    <button class="guest-btn" id="guestBtnDirect" style="display:none;" onclick="enterViewOnly()">
+      👁️ 게스트로 열람만 하기
+      <div style="font-size:.75rem;font-weight:400;margin-top:2px;color:#a0aec0;">달력 열람 및 통계 확인 가능</div>
+    </button>
+  </div>
+</div>
+
+<!-- ★ 작업계획담당자 PIN 로그인 모달 (전체 공통 1개) -->
+<div class="modal-overlay" id="plannerLoginOverlay" style="z-index:1000;">
+  <div class="modal" style="width:320px;">
+    <h3>📋 작업계획담당자 로그인</h3>
+    <input type="password" id="plannerLoginPinInput" maxlength="4" placeholder="PIN 입력"
+      style="width:100%;padding:10px;border:1px solid #cbd5e0;border-radius:8px;font-size:1rem;text-align:center;margin-bottom:10px;">
+    <div class="pin-error" id="plannerLoginPinError"></div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closePlannerLogin()">취소</button>
+      <button class="ok-btn" onclick="checkPlannerLoginPin()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ★ 작업계획담당자 - 팀 선택 모달 (로그인 성공 후, A안: 팀 목록에서 자유 선택) -->
+<div class="modal-overlay" id="plannerTeamSelectOverlay" style="z-index:1000;">
+  <div class="modal" style="width:360px;">
+    <h3>📋 열람할 팀을 선택하세요</h3>
+    <div id="plannerTeamList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="plannerLogout()">로그아웃</button>
+    </div>
+  </div>
+</div>
+
+<!-- 마스터 로그인 모달 -->
+<div class="modal-overlay" id="masterLoginOverlay" style="z-index:1000;">
+  <div class="modal" style="width:320px;">
+    <h3>🛠️ 마스터 관리자 로그인</h3>
+    <input type="password" id="masterPinInput" maxlength="6" placeholder="마스터 PIN 입력"
+      style="width:100%;padding:10px;border:1px solid #cbd5e0;border-radius:8px;font-size:1rem;text-align:center;margin-bottom:10px;">
+    <div class="pin-error" id="masterPinError"></div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closeMasterLogin()">취소</button>
+      <button class="ok-btn" onclick="checkMasterPin()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 마스터 관리 패널 -->
+<div class="modal-overlay" id="masterPanelOverlay" style="z-index:1000;">
+  <div class="modal" style="width:480px;">
+    <h3>🛠️ 마스터 관리자 - 팀 관리</h3>
+    <div class="modal-section">
+      <h4>📋 등록된 팀 목록</h4>
+      <div id="masterTeamList"></div>
+    </div>
+    <div class="modal-section">
+      <h4>➕ 새 팀 추가</h4>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="newTeamName" placeholder="팀 이름 (예: 신규팀)"
+          style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;">
+        <button class="btn btn-blue" onclick="addNewTeam()">추가</button>
+      </div>
+    </div>
+    <div class="modal-section">
+      <h4>🔑 마스터 PIN 변경</h4>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="newMasterPin" maxlength="6" placeholder="새 PIN(4~6자리)"
+          style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;">
+        <button class="btn btn-gray" onclick="changeMasterPin()">변경</button>
+      </div>
+    </div>
+    <!-- ★ 작업계획담당자 PIN 변경 (마스터 관리자 전용) -->
+    <div class="modal-section">
+      <h4>📋 작업계획담당자 PIN 변경 (전체 공통)</h4>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="newPlannerPin" maxlength="4" placeholder="새 PIN(4자리)"
+          style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;">
+        <button class="btn btn-gray" onclick="changePlannerPin()">변경</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closeMasterPanel()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1 id="headerTitle">📅 NGP근무달력</h1>
+  <p>🔘 휴무 · ⭐ 특근 · ✅ 정상근무 | 실시간 동기화</p>
+</header>
+<div class="user-bar" id="userBar">
+  <span id="userBarText">🔐 로그인 중...</span>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <!-- ★ 알림벨 -->
+    <button class="notif-bell" onclick="openNotifPanel()">
+      🔔
+      <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+    </button>
+    <!-- ★ 작업계획담당자용 "다른 팀 보기" 버튼 (관리자/게스트에는 숨김) -->
+    <button class="logout-btn" id="switchTeamBtn" style="display:none;" onclick="openPlannerTeamSelect()">🔄 다른 팀 보기</button>
+    <button class="logout-btn" onclick="openStats()">📊 통계</button>
+    <button class="logout-btn" onclick="logout()">🔒 로그아웃</button>
+  </div>
+</div>
+<div class="sync-status" id="syncStatus">🔄 연결 중...</div>
+<div class="holiday-status" id="holidayStatus">🔄 공휴일 정보 로딩 중...</div>
+
+<!-- ★ 확정구간 상태 표시 (전체 사용자 공통으로 보임) -->
+<div class="confirm-status" id="confirmStatus"></div>
+<!-- ★ 작업계획담당자 검토 현황 (관리자만 보임) -->
+<div class="review-status" id="reviewStatus"></div>
+
+<div class="member-config" id="memberConfig">
+  <label style="font-weight:700;color:#2b6cb0;">👑 팀원 관리</label>
+  <div class="member-list-wrap" id="memberListWrap"></div>
+  <button class="add-member-btn" onclick="addMember()">➕ 팀원 추가</button>
+  <div class="admin-pin-wrap">
+    <label>관리자 PIN</label>
+    <input type="password" id="adminPinInput" maxlength="4" placeholder="****">
+    <button class="btn btn-blue" style="padding:5px 10px;font-size:.78rem;" onclick="saveAdminPin()">변경</button>
+  </div>
+  <button class="btn btn-blue" onclick="applyConfig()">✅ 적용</button>
+</div>
+
+<div class="controls" id="adminControls" style="display:none;">
+  <button class="btn btn-green" onclick="openStats()">📊 통계</button>
+  <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
+  <button class="btn btn-blue" onclick="setConfirmedDate()">✅ 확정일 지정</button>
+</div>
+<div class="controls" id="guestControls" style="display:none;">
+  <button class="btn btn-green" onclick="openStats()">📊 통계</button>
+  <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
+</div>
+<!-- ★ 작업계획담당자용 컨트롤 -->
+<div class="controls" id="plannerControls" style="display:none;">
+  <button class="btn btn-green" onclick="openStats()">📊 통계</button>
+  <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
+  <button class="btn btn-blue" onclick="markReviewed()">✅ 이 근무표 검토 완료</button>
+</div>
+
+<div class="nav">
+  <button onclick="prevMonth()">◀</button>
+  <select id="yearSel" onchange="onNavChange()"></select>
+  <select id="monthSel" onchange="onNavChange()"></select>
+  <select id="weekSel" onchange="onWeekChange()"></select>
+  <button onclick="nextMonth()">▶</button>
+</div>
+<div class="calendar-wrap">
+  <table>
+    <thead>
+      <tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr>
+    </thead>
+    <tbody id="calBody"></tbody>
+  </table>
+</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div>휴무</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fffde7;border-color:#f6e05e;"></div>특근</div>
+  <div class="legend-item"><div class="legend-box" style="background:#dbeafe;"></div>오전</div>
+  <div class="legend-item"><div class="legend-box" style="background:#dcfce7;"></div>오후</div>
+  <div class="legend-item"><div class="legend-box" style="background:#ede9fe;"></div>야간</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fef3c7;"></div>연장(+h)</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fed7d7;"></div>연차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fbd38d;"></div>시간차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fce4ec;"></div>가족사랑</div>
+  <div class="legend-item"><div class="legend-box" style="background:#e8f5e9;"></div>체력단련</div>
+  <div class="legend-item"><div class="legend-box" style="background:#ffebee;"></div>단체연차</div>
+  <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div>교육</div>
+  <div class="legend-item"><div class="legend-box" style="background:#d1fae5;border-color:#6ee7b7;"></div>출산휴가</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fff5f5;border-color:#e53e3e;"></div>미확정</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fffaf0;border-color:#f6ad55;"></div>확정 후 변경됨</div>
+  <div class="legend-item">📌 메모</div>
+</div>
+
+<div class="memo-modal-overlay" id="memoModalOverlay">
+  <div class="memo-modal">
+    <div class="memo-modal-header">
+      <h4>📌 메모</h4>
+      <span class="memo-modal-date" id="memoModalDate"></span>
+    </div>
+    <div class="memo-modal-body" id="memoModalBody"></div>
+    <div class="memo-modal-btns">
+      <button class="memo-close-btn" onclick="closeMemoModal()">닫기</button>
+    </div>
+  </div>
+</div>
+<div class="shift-popup-overlay" id="shiftPopupOverlay">
+  <div class="shift-popup">
+    <div class="shift-popup-header">
+      <h4 id="shiftPopupTitle">📅 근무 상세</h4>
+      <button class="shift-popup-close" onclick="closeShiftPopup()">✕</button>
+    </div>
+    <div id="shiftPopupContent"></div>
+    <button class="shift-popup-edit-btn" id="shiftPopupEditBtn" style="display:none;" onclick="goToEdit()">✏️ 수정하기</button>
+  </div>
+</div>
+<div class="stats-overlay" id="statsOverlay">
+  <div class="stats-modal">
+    <h3>📊 근무 통계
+      <select class="stats-year-sel" id="statsYearSel" onchange="renderStats()"></select>
+    </h3>
+    <div id="statsContent"></div>
+    <div class="modal-btns" style="margin-top:16px;">
+      <button class="cancel-btn" onclick="closeStats()">닫기</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">근무 편집</h3>
+    <button class="week-copy-btn" id="weekCopyBtn" onclick="applyWeekCopy()">
+      📋 이 날 기준으로 해당 주 평일 전체 적용
+      <div style="font-size:.75rem;font-weight:400;margin-top:2px;">(토/일/공휴일 제외, 정상근무만 적용)</div>
+    </button>
+    <div class="day-type-row">
+      <button class="day-type-btn" id="btnOff" onclick="selectDayType('off')">🔘<br>휴무<br><span style="font-size:.72rem;font-weight:400;">쉬는 날</span></button>
+      <button class="day-type-btn" id="btnSpecial" onclick="selectDayType('special')">⭐<br>특근<br><span style="font-size:.72rem;font-weight:400;">선택적 근무</span></button>
+      <button class="day-type-btn" id="btnNormal" onclick="selectDayType('normal')">✅<br>정상근무<br><span style="font-size:.72rem;font-weight:400;">일반 근무일</span></button>
+    </div>
+    <div class="edit-section" id="editSection">
+      <div class="modal-section">
+        <h4>🕐 근무 배치 <span style="font-size:.72rem;color:#718096;font-weight:400;">(팀원별 근무 지정)</span></h4>
+        <div id="shiftMemberRows"></div>
+      </div>
+      <div class="modal-section">
+        <h4>🏖️ 휴가 / 이벤트</h4>
+        <div id="eventSlots"></div>
+      </div>
+      <div class="modal-section memo-section">
+        <h4>📝 메모</h4>
+        <textarea class="memo-input" id="memoInput" rows="2" placeholder="예) 설비점검, 교육내용, 특근사유..."></textarea>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="reset-btn" onclick="resetDay()">🗑️ 초기화</button>
+      <button class="cancel-btn" onclick="closeModal()">취소</button>
+      <button class="ok-btn" onclick="saveDay()">💾 저장</button>
+    </div>
+  </div>
+</div>
+<div class="edit-locked" id="editLocked">🔒 관리자 로그인 후 수정 가능합니다</div>
+
+<!-- ★ 알림 패널 -->
+<div class="notif-overlay" id="notifOverlay">
+  <div class="notif-modal">
+    <h3>
+      🔔 최근 변경사항
+      <button class="notif-clear-btn" onclick="clearNotifLog()">전체 지우기</button>
+    </h3>
+    <div id="notifList"></div>
+    <div class="modal-btns" style="margin-top:12px;">
+      <button class="cancel-btn" onclick="closeNotifPanel()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
